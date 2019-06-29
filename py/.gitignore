@@ -1,0 +1,16 @@
+*.iml
+.idea
+.idea/*
+target/
+*/target/
+.DS_Store
+*/.DS_Store
+LOG_PATH_IS_UNDEFINED
+rebel.xml
+rebel.xml.bak
+*/rebel.xml.bak
+pom.xml.versionsBackup
+metastore_db
+derby.log
+*.log
+node_modules
