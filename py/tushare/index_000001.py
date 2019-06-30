@@ -1,4 +1,3 @@
-
 ## 获取上证指数的所以数据
 
 # open 开盘
@@ -22,15 +21,12 @@ import pandas as pd
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.width', None)
-# print(dir(ts))
-# ts.get_hist_data('600848') #一次性获取全部日k线数据
 
-# aa = ts.get_hist_data('600848')
+pro = ts.pro_api()
 
-print(ts.__version__)
+metric = pro.index_daily(ts_code='000001.SH')
+print("metric colums:"+metric.columns)
+print(metric)
 
-d = ts.get_hist_data('000001',start='2016-01-01',end='2018-03-31')
-print("colums:"+d.columns)
-print(d)
-# print(ts.get_hist_data('000001'))
+metric.to_csv("csv/index_000001.csv")
 
