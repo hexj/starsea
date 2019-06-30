@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+    <input id="csv" type="file">
+
+    <br />
+    <br />
+    <br />
+    <br />
+
+    <output id="out">
+        file contents will appear here
+    </output>
+
+    <script>
+        var colums = ['trade_date', 'open', 'close', 'low', 'high']
+
+        var fileInput = document.getElementById("csv"),
+
+        readFile = function () {
+            var reader = new FileReader();
+            reader.readAsText(fileInput.files[0]);
+
+            var lines = [];
+            reader.onload = function (evt) {
+                var res = evt.target.result;        //读到的数据
+                var allTextLines = res.split(/\r\n|\n/);
+
+                console.log('allTextLines: ');
+                console.log(allTextLines);
+
+                var headers = allTextLines[0].split(',');
+                console.log('headers: ');
+                console.log(headers);
+                console.log('\n\n');
+
+                var index = []
+                for (var hi=0; hi < headers.length; hi++) {
+                    for (var ci=0; ci < colums.length; ci++) {
+                        if(headers[hi] == colums[ci]){
+                            index.push(hi)
+                        }
+                    }
+                }
+
+                console.log('index: ')
+                console.log(index)
+
+                for (var i=1; i<allTextLines.length; i++) {
+                    var data = allTextLines[i].split(',');
+                    if (data.length == headers.length) {
+
+                        var tarr = [];
+                        // for (var j=0; j<headers.length; j++) {
+                        //     tarr.push(headers[j]+":"+data[j]);
+                        // }
+                        for (var j=0; j<index.length; j++) {
+                            tarr.push(data[index[j]]);
+                        }
+                        lines.push(tarr);
+                    }
+                }
+                console.log('lines: ');
+                console.log(lines);
+
+                document.getElementById('out').innerHTML = res;
+            };
+        };
+
+        fileInput.addEventListener('change', readFile);
+
+    </script>
+
+
+
+
+
+
+</body>
+</html>
