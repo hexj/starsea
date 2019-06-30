@@ -7,8 +7,9 @@
     <title>000001.SH</title>
 </head>
 <body>
-    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
     <div id="main" style="width: 1200px;height:800px;"></div>
+
+    <input id="csv" type="file">
 
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
@@ -18,7 +19,6 @@
         var upBorderColor = '#8A0000';
         var downColor = '#00da3c';
         var downBorderColor = '#008F28';
-
 
         // 数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
         var data0 = splitData([
@@ -112,6 +112,7 @@
             ['2013/6/13', 2190.1,2148.35,2126.22,2190.1]
         ]);
 
+        play(data0)
 
         function splitData(rawData) {
             var categoryData = [];
@@ -126,210 +127,275 @@
             };
         }
 
-        function calculateMA(dayCount) {
+        function calculateMA(inputData, dayCount) {
+            // console.log('----------------------------------')
             var result = [];
-            for (var i = 0, len = data0.values.length; i < len; i++) {
+            for (var i = 0, len = inputData.values.length; i < len; i++) {
                 if (i < dayCount) {
                     result.push('-');
                     continue;
                 }
                 var sum = 0;
                 for (var j = 0; j < dayCount; j++) {
-                    sum += data0.values[i - j][1];
+                    sum += inputData.values[i - j][1];
                 }
+                // console.log('sum:%s, dayCount:%s, sum / dayCount',sum, dayCount, sum / dayCount)
                 result.push(sum / dayCount);
             }
+
+            // console.log('inputData: ')
+            // console.log(inputData)
+            // console.log('dayCount: %s, result: ', dayCount)
+            // console.log(result)
+            // console.log('----------------------------------')
             return result;
         }
 
-
-
-        option = {
-            title: {
-                text: '上证指数',
-                left: 0
-            },
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                    type: 'cross'
-                }
-            },
-            legend: {
-                data: ['日K', 'MA5', 'MA10', 'MA20', 'MA30']
-            },
-            grid: {
-                left: '10%',
-                right: '10%',
-                bottom: '15%'
-            },
-            xAxis: {
-                type: 'category',
-                data: data0.categoryData,
-                scale: true,
-                boundaryGap : false,
-                axisLine: {onZero: false},
-                splitLine: {show: false},
-                splitNumber: 20,
-                min: 'dataMin',
-                max: 'dataMax'
-            },
-            yAxis: {
-                scale: true,
-                splitArea: {
-                    show: true
-                }
-            },
-            dataZoom: [
-                {
-                    type: 'inside',
-                    start: 50,
-                    end: 100
+        function play(inputData){
+            option = {
+                title: {
+                    text: '上证指数',
+                    left: 0
                 },
-                {
-                    show: true,
-                    type: 'slider',
-                    y: '90%',
-                    start: 50,
-                    end: 100
-                }
-            ],
-            series: [
-                {
-                    name: '日K',
-                    type: 'candlestick',
-                    data: data0.values,
-                    itemStyle: {
-                        normal: {
-                            color: upColor,
-                            color0: downColor,
-                            borderColor: upBorderColor,
-                            borderColor0: downBorderColor
-                        }
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross'
+                    }
+                },
+                legend: {
+                    data: ['日K', 'MA5', 'MA10', 'MA20', 'MA30']
+                },
+                grid: {
+                    left: '10%',
+                    right: '10%',
+                    bottom: '15%'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: inputData.categoryData,
+                    scale: true,
+                    boundaryGap : false,
+                    axisLine: {onZero: false},
+                    splitLine: {show: false},
+                    splitNumber: 20,
+                    min: 'dataMin',
+                    max: 'dataMax'
+                },
+                yAxis: {
+                    scale: true,
+                    splitArea: {
+                        show: true
+                    }
+                },
+                dataZoom: [
+                    {
+                        type: 'inside',
+                        start: 50,
+                        end: 100
                     },
-                    markPoint: {
-                        label: {
+                    {
+                        show: true,
+                        type: 'slider',
+                        y: '90%',
+                        start: 50,
+                        end: 100
+                    }
+                ],
+                series: [
+                    {
+                        name: '日K',
+                        type: 'candlestick',
+                        data: inputData.values,
+                        itemStyle: {
                             normal: {
-                                formatter: function (param) {
-                                    return param != null ? Math.round(param.value) : '';
-                                }
+                                color: upColor,
+                                color0: downColor,
+                                borderColor: upBorderColor,
+                                borderColor0: downBorderColor
                             }
                         },
-                        data: [
-                            {
-                                name: 'XX标点',
-                                coord: ['2013/5/31', 2300],
-                                value: 2300,
-                                itemStyle: {
-                                    normal: {color: 'rgb(41,60,85)'}
+                        markPoint: {
+                            label: {
+                                normal: {
+                                    formatter: function (param) {
+                                        return param != null ? Math.round(param.value) : '';
+                                    }
                                 }
                             },
-                            {
-                                name: 'highest value',
-                                type: 'max',
-                                valueDim: 'highest'
-                            },
-                            {
-                                name: 'lowest value',
-                                type: 'min',
-                                valueDim: 'lowest'
-                            },
-                            {
-                                name: 'average value on close',
-                                type: 'average',
-                                valueDim: 'close'
-                            }
-                        ],
-                        tooltip: {
-                            formatter: function (param) {
-                                return param.name + '<br>' + (param.data.coord || '');
-                            }
-                        }
-                    },
-                    markLine: {
-                        symbol: ['none', 'none'],
-                        data: [
-                            [
+                            data: [
                                 {
-                                    name: 'from lowest to highest',
-                                    type: 'min',
-                                    valueDim: 'lowest',
-                                    symbol: 'circle',
-                                    symbolSize: 10,
-                                    label: {
-                                        normal: {show: false},
-                                        emphasis: {show: false}
+                                    name: 'XX标点',
+                                    coord: ['2013/5/31', 2300],
+                                    value: 2300,
+                                    itemStyle: {
+                                        normal: {color: 'rgb(41,60,85)'}
                                     }
                                 },
                                 {
+                                    name: 'highest value',
                                     type: 'max',
-                                    valueDim: 'highest',
-                                    symbol: 'circle',
-                                    symbolSize: 10,
-                                    label: {
-                                        normal: {show: false},
-                                        emphasis: {show: false}
-                                    }
+                                    valueDim: 'highest'
+                                },
+                                {
+                                    name: 'lowest value',
+                                    type: 'min',
+                                    valueDim: 'lowest'
+                                },
+                                {
+                                    name: 'average value on close',
+                                    type: 'average',
+                                    valueDim: 'close'
                                 }
                             ],
-                            {
-                                name: 'min line on close',
-                                type: 'min',
-                                valueDim: 'close'
-                            },
-                            {
-                                name: 'max line on close',
-                                type: 'max',
-                                valueDim: 'close'
+                            tooltip: {
+                                formatter: function (param) {
+                                    return param.name + '<br>' + (param.data.coord || '');
+                                }
                             }
-                        ]
-                    }
-                },
-                {
-                    name: 'MA5',
-                    type: 'line',
-                    data: calculateMA(5),
-                    smooth: true,
-                    lineStyle: {
-                        normal: {opacity: 0.5}
-                    }
-                },
-                {
-                    name: 'MA10',
-                    type: 'line',
-                    data: calculateMA(10),
-                    smooth: true,
-                    lineStyle: {
-                        normal: {opacity: 0.5}
-                    }
-                },
-                {
-                    name: 'MA20',
-                    type: 'line',
-                    data: calculateMA(20),
-                    smooth: true,
-                    lineStyle: {
-                        normal: {opacity: 0.5}
-                    }
-                },
-                {
-                    name: 'MA30',
-                    type: 'line',
-                    data: calculateMA(30),
-                    smooth: true,
-                    lineStyle: {
-                        normal: {opacity: 0.5}
-                    }
-                },
+                        },
+                        markLine: {
+                            symbol: ['none', 'none'],
+                            data: [
+                                [
+                                    {
+                                        name: 'from lowest to highest',
+                                        type: 'min',
+                                        valueDim: 'lowest',
+                                        symbol: 'circle',
+                                        symbolSize: 10,
+                                        label: {
+                                            normal: {show: false},
+                                            emphasis: {show: false}
+                                        }
+                                    },
+                                    {
+                                        type: 'max',
+                                        valueDim: 'highest',
+                                        symbol: 'circle',
+                                        symbolSize: 10,
+                                        label: {
+                                            normal: {show: false},
+                                            emphasis: {show: false}
+                                        }
+                                    }
+                                ],
+                                {
+                                    name: 'min line on close',
+                                    type: 'min',
+                                    valueDim: 'close'
+                                },
+                                {
+                                    name: 'max line on close',
+                                    type: 'max',
+                                    valueDim: 'close'
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        name: 'MA5',
+                        type: 'line',
+                        data: calculateMA(inputData, 5),
+                        smooth: true,
+                        lineStyle: {
+                            normal: {opacity: 0.5}
+                        }
+                    },
+                    {
+                        name: 'MA10',
+                        type: 'line',
+                        data: calculateMA(inputData, 10),
+                        smooth: true,
+                        lineStyle: {
+                            normal: {opacity: 0.5}
+                        }
+                    },
+                    {
+                        name: 'MA20',
+                        type: 'line',
+                        data: calculateMA(inputData, 20),
+                        smooth: true,
+                        lineStyle: {
+                            normal: {opacity: 0.5}
+                        }
+                    },
+                    {
+                        name: 'MA30',
+                        type: 'line',
+                        data: calculateMA(inputData, 30),
+                        smooth: true,
+                        lineStyle: {
+                            normal: {opacity: 0.5}
+                        }
+                    },
+                ]
+            };
 
-            ]
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+        }
+
+        var colums = ['trade_date', 'open', 'close', 'low', 'high']
+
+        var fileInput = document.getElementById("csv"),
+
+        readFile = function () {
+            var reader = new FileReader();
+            reader.readAsText(fileInput.files[0]);
+
+            var lines = [];
+            reader.onload = function (evt) {
+                var res = evt.target.result;        //读到的数据
+                var allTextLines = res.split(/\r\n|\n/);
+
+                // console.log('allTextLines: ');
+                // console.log(allTextLines);
+
+                var headers = allTextLines[0].split(',');
+                // console.log('headers: ');
+                // console.log(headers);
+                // console.log('\n\n');
+
+                var index = []
+                for (var hi=0; hi < headers.length; hi++) {
+                    for (var ci=0; ci < colums.length; ci++) {
+                        if(headers[hi] == colums[ci]){
+                            index.push(hi)
+                        }
+                    }
+                }
+
+                // console.log('index: ')
+                // console.log(index)
+
+                for (var i=1; i<allTextLines.length; i++) {
+                    var data = allTextLines[i].split(',');
+                    if (data.length == headers.length) {
+
+                        var tarr = [];
+                        for (var j=0; j<index.length; j++) {
+                            if(j == 0){
+                                tarr.push(data[index[j]]);
+                            }else{
+                                tarr.push(parseFloat(data[index[j]]));
+                            }
+
+                        }
+                        lines.push(tarr);
+                    }
+                }
+                // console.log('lines: ');
+                // console.log(lines);
+
+                play(splitData(lines.reverse()))
+
+                // document.getElementById('out').innerHTML = res;
+            };
+
+
         };
-
-        // 使用刚指定的配置项和数据显示图表。
-        myChart.setOption(option);
-
-
+        fileInput.addEventListener('change', readFile);
     </script>
-
 </body>
 </html>
