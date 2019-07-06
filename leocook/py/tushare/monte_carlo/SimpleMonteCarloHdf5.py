@@ -14,10 +14,10 @@ import numpy as np
 #pd.set_option('display.width', None)
 
 # 天数
-days = 5
+days = 50
 
 # 数据条数
-recodes = 1000000
+recodes = 100000
 
 # 定量
 buckNum = 100
@@ -41,11 +41,36 @@ print(pdd)
 
 print('----------------------------------------------------------------')
 
-# def process(row):
-#     sum = 0
-#     for c in columns:
-#         sum = sum + row[c]
-#     return sum
+def process(row):
+    sum = 0
+    sum_reciprocal = 0
+    lastIndex = len(columns) - 1
+    for index in range(lastIndex):
+        sum = sum + row[index]
+        sum_reciprocal = sum_reciprocal + 1.0 / row[index]
+
+    # 定量（盈利率）
+    a = row[lastIndex] * lastIndex / sum - 1
+
+    # 定量（平均成本单价）
+    b = sum / lastIndex
+
+    # 定额（盈利率）
+    c = row[lastIndex] * sum_reciprocal / lastIndex - 1
+
+    # 定额（平均成本单价）
+    d = lastIndex / sum_reciprocal
+
+    return pd.Series([
+        a,
+        b,
+        c,
+        d,
+        a - c,
+        b - d
+    ])
+
+
 
 # 定量（盈利率）
 def dingliang(row):
@@ -89,16 +114,7 @@ def dinge_price(row):
 
 # 定额（盈利额）、定量（盈利额）
 # 最后一天是成交价
-pdd['定量（盈利率）'] = pdd.apply(lambda row: dingliang(row), axis=1)
-pdd['定额（盈利率）'] = pdd.apply(lambda row: dinge(row), axis=1)
-
-
-pdd['定量（平均成本单价）'] = pdd.apply(lambda row: dingliang_price(row), axis=1)
-pdd['定额（平均成本单价）'] = pdd.apply(lambda row: dinge_price(row), axis=1)
-
-pdd['定量-定额（盈利率）'] = pdd.apply(lambda row: (row['定量（盈利率）'] - row['定额（盈利率）']), axis=1)
-pdd['定量-定额（平均成本单价）'] = pdd.apply(lambda row: (row['定量（平均成本单价）'] - row['定额（平均成本单价）']), axis=1)
-
+pdd[['定量（盈利率）','定量（平均成本单价）','定额（盈利率）','定额（平均成本单价）', '定量-定额（盈利率）','定量-定额（平均成本单价）']] = pdd.apply(lambda row: process(row), axis=1)
 
 print(pdd)
 
