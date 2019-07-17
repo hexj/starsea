@@ -4,8 +4,7 @@ FROM $BASE_CONTAINER
 # for mirrors in China
 ENV TZ=Asia/Shanghai
 ENV DEBIAN_FRONTEND noninteractive
-COPY pip.conf /root/.pip/pip.conf
-
+COPY pip.conf /etc/pip.conf
 COPY source.list /etc/apt/sources.list
 RUN whoami
 USER root
@@ -22,7 +21,7 @@ RUN git clone https://github.com/hexj/starsea \
     && cd starsea \
     && pip install -r env-ide/ss-jupyter/requirements.txt \
     # && pip install -r /requirements.txt \
-    && pip install -e . \
+    # && pip install -e . \
     && apt-get clean -y \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
