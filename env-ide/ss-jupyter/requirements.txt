@@ -1,6 +1,6 @@
-pandas
-lxml
-matplotlib
-requests
-numpy>=1.12.0
 jupyterthemes
+requests
+matplotlib
+pandas
+numpy>=1.12.0
+tushare

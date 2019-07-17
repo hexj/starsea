@@ -19,14 +19,16 @@ RUN apt-get update && apt-get upgrade -y \
 USER jovyan
 RUN git clone https://github.com/hexj/starsea \
     && cd starsea \
-    && pip install -r env-ide/ss-jupyter/requirements.txt \
+    && pip install -r env-ide/ss-jupyter/requirements.txt
     # && pip install -r /requirements.txt \
     # && pip install -e . \
-    && apt-get clean -y \
+
+USER root
+RUN apt-get clean -y \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
+USER jovyan
 ENV LANG zh_CN.UTF-8
 ENV LANGUAGE zh_CN.UTF-8
 ENV LC_ALL zh_CN.UTF-8
