@@ -23,11 +23,15 @@ RUN git clone https://github.com/hexj/starsea \
     # && pip install -r /requirements.txt \
     # && pip install -e . \
 
+RUN jt -t onedork -f roboto -fs 14 -nfs 14 -tfs 14 -ofs 11
+#jt -t oceans16 -T -N
+
 USER root
 RUN apt-get clean -y \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 USER jovyan
 ENV LANG zh_CN.UTF-8
 ENV LANGUAGE zh_CN.UTF-8
