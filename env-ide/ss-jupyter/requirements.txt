@@ -1,7 +1,16 @@
 jupyterthemes
 requests
-matplotlib
-pandas
 numpy
 tushare
 abupy
+
+#python量化 https://www.bilibili.com/video/av24528809?p=2
+pandas
+pandas_datareader
+tushare
+matplotlib
+beautifulsoup4
+sklearn
+tensorflow
+# tensorflow-gpu
+keras
