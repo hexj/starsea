@@ -70,3 +70,4 @@ Desktop.ini
 *.un~
 Session.vim
 
+.DS_Store

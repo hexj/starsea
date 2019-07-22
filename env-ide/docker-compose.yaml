@@ -1,0 +1,12 @@
+version: '3'
+services:
+    starsea:
+        container_name: starsea
+        image: starsea-jupyter
+        build: ./ss-jupyter
+        ports:
+            - "8888:8888"
+        volumes:
+            - ./data:/home
+        restart: always
+
