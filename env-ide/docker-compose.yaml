@@ -7,6 +7,6 @@ services:
         ports:
             - "8888:8888"
         volumes:
-            - ./data:/home
+            - ./data:/home/jovyan/models
         restart: always
 
