@@ -8,7 +8,7 @@ COPY pip.conf /etc/pip.conf
 COPY source.list /etc/apt/sources.list
 RUN whoami
 USER root
-RUN sudo cp /etc/apt/sources.list sources.list_backup
+# RUN sudo cp /etc/apt/sources.list sources.list_backup
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y apt-utils locales git \
     && locale-gen zh_CN.UTF-8 \
