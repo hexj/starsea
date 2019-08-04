@@ -9,4 +9,4 @@ services:
         volumes:
             - ./data:/home/jovyan/models
         restart: always
-
+        # entrypoint
