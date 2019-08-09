@@ -14,39 +14,16 @@
        <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=xfhhaTThl11qYVrqLZii6w8qE5ggnhrY&__ec_v__=20190126"></script>
        <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
        <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/simplex.js"></script>
-       <script type="text/javascript">
-var dom = document.getElementById("container");
-var myChart = echarts.init(dom);
-var app = {};
-option = null;
-var ipAddress = null;
-$(document).ready(function () {
-    $.ajax({
-        url: '../data/random.json',
-        async: false,
-        success: function (data) {
-            ipAddress = data;
+       <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+<script>
+                //回调函数
+        function train (data){
+                  console.log(data);
         }
-    });
-});
-console.log()
-option = {
-    xAxis: {
-        type: 'category',
-        data: [],
-    },
-    yAxis: {
-        type: 'value'
-    },
-    series: [{
-        data: [],
-        type: 'line'
-    }]
-};
-;
-if (option && typeof option === "object") {
-    myChart.setOption(option, true);
-}
+</script>
+       <script src="data/random.json?cb=train"></script>
+       <script type="text/javascript">
+
        </script>
    </body>
 </html>
