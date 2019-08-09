@@ -1,3 +1,2 @@
-docker-compose up -d
-sleep 3
+docker-compose up
 docker logs starsea 2>&1 | grep "token" | grep -v "NotebookApp"
