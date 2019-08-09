@@ -1,15 +1,31 @@
 jupyterthemes
 requests
 numpy
-abupy
 
 #python量化 https://www.bilibili.com/video/av24528809?p=2
 pandas<0.25.0
 pandas_datareader
 tushare
-matplotlib
+matplotlib # == 3.0.0
 beautifulsoup4
 sklearn
-tensorflow
-# tensorflow-gpu
+# tensorflow
 keras
+plotly
+backtrader
+backtrader_plotting
+# bcolz
+# rqalpha
+ipympl
+prompt-toolkit
+ipython
+# abupy
+# TA-Lib
+
+flask
+dash==0.21.0
+dash-auth==0.1.0
+dash-core-components==0.20.2
+dash-html-components==0.10.0
+dash-renderer==0.11.3
+dash-table-experiments==0.6.0
