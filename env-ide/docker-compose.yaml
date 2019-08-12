@@ -26,5 +26,6 @@ services:
         container_name: redis
         image: redis:alpine
         restart: always
+        command: redis-server --requirepass mypasswd
         ports :
             - 6379:6379
