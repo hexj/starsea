@@ -22,10 +22,10 @@ services:
               jupyter lab --allow-root --ip=0.0.0.0 --no-browser
         restart: always
 
-    redis:
-        container_name: redis
-        image: redis:alpine
-        restart: always
-        command: redis-server --requirepass mypasswd
-        ports :
-            - 6379:6379
+    # redis:
+    #     container_name: redis
+    #     image: redis:alpine
+    #     restart: always
+    #     command: redis-server --requirepass mypasswd
+    #     ports :
+    #         - 6379:6379

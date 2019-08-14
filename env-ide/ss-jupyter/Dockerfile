@@ -40,6 +40,9 @@ COPY requirements.txt /home/jovyan/requirements.txt
 # RUN pip install bcolz
 RUN pip install -r /home/jovyan/requirements.txt
 # RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager \
+#     && pip install jupyter_contrib_nbextensions jupyter_nbextensions_configurator \
+#     && jupyter contrib nbextension install --user
+#     && jupyter nbextensions_configurator enable --user
 #     && jupyter labextension install jupyter-matplotlib \
 #     && jupyter nbextension enable --py widgetsnbextension \
 #     && jupyter serverextension enable --py jupyterlab
