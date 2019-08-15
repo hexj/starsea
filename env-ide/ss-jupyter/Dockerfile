@@ -9,7 +9,7 @@ USER root
 # MPLBACKEND=TkAgg
 RUN echo "DEBIAN_FRONTEND noninteractive\nLC_ALL=zh_CN.UTF-8\nLANG=zh_CN.UTF-8\nLANGUAGE=zh_CN.UTF-8\n" >> /etc/environment \
     && apt-get update --fix-missing && apt-get upgrade -y \
-    && apt-get install -y apt-utils make gcc \
+    && apt-get install -y apt-utils make gcc fonts-humor-sans \
     locales git python-tk \ 
     # tk-dev libagg-dev python-matplotlib \ 
     # python-blosc libpng-dev libffi-dev dvipng texlive-latex-base \
@@ -20,7 +20,8 @@ RUN echo "DEBIAN_FRONTEND noninteractive\nLC_ALL=zh_CN.UTF-8\nLANG=zh_CN.UTF-8\n
 RUN apt-get clean -y \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && rm -rf /home/jovyan/.cache/matplotlib/
 
 RUN wget https://downloads.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz \
     && tar xvf ta-lib-0.4.0-src.tar.gz \

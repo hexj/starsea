@@ -11,6 +11,7 @@ services:
             - ./data:/home/jovyan/models
             - ./ss-jupyter:/home/jovyan/ss
             - ./data/.cache:/home/jovyan/.cache
+            - ./data/fonts:/usr/share/fonts
             # - ./pip.conf:/etc/pip.conf
         # command: ""
         #   pip install -r /home/jovyan/ss/requirements.txt
@@ -21,6 +22,9 @@ services:
               jt -t onedork -f roboto -fs 14 -nfs 14 -tfs 14 -ofs 11
               jupyter lab --allow-root --ip=0.0.0.0 --no-browser
         restart: always
+        environment:
+            - JUPYTER_ENABLE_LAB=true
+            - JUPYTER_TOKEN=starsea
 
     # redis:
     #     container_name: redis
