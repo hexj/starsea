@@ -1,3 +1,4 @@
+*.h5
 .vscode/
 .history
 .cache/
