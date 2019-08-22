@@ -4,6 +4,20 @@ import os
 import struct
 import pandas as pd
 
+import taos
+import sys
+import datetime
+import random
+
+def exitProgram(conn):
+    conn.close()
+    sys.exit()
+def getconn():
+    conn = taos.connect(host="127.0.0.1", user="root", password="taosdata", config="/etc/taos")
+    return conn
+def df2db(df):
+    df.to_sql(name='test', con=con, if_exists='append', index=False)
+
 def parse_tdxfile(fname):
     dataSet=[]
     with open(fname,'rb')  as fl:
