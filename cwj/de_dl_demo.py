@@ -25,8 +25,8 @@ price_list = f_price(100)
 df = pd.DataFrame({'price': price_list})
 df['price_reciprocal'] = df.price.apply(lambda x: 1/x)
 df['ndays'] = df.index + 1
-df['de_mean_price'] = df.price.cumsum() /  df.ndays  # 定额投在定投到n天的均价
-df['dl_mean_price'] = df.ndays / df.price_reciprocal.cumsum() # 定量投在定投到n天的均价
+df['dl_mean_price'] = df.price.cumsum() /  df.ndays  # 定额投在定投到n天的均价
+df['de_mean_price'] = df.ndays / df.price_reciprocal.cumsum() # 定量投在定投到n天的均价
 df['de_dl_price_diff'] = df.de_mean_price - df.dl_mean_price
 df['de_dl_price_ratio'] = df.de_mean_price / df.dl_mean_price
 df.head()
