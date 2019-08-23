@@ -16,7 +16,9 @@ RUN echo "DEBIAN_FRONTEND noninteractive\nLC_ALL=zh_CN.UTF-8\nLANG=zh_CN.UTF-8\n
     && locale-gen zh_CN.UTF-8 \
     && localedef -i zh_CN -c -f UTF-8 -A /usr/share/locale/locale.alias zh_CN.UTF-8 \
     && echo "LANG=zh_CN.UTF-8" > /etc/locale.conf \
-    && echo "zh_CN.UTF-8 UTF-8" >> /etc/locale.gen 
+    && echo "zh_CN.UTF-8 UTF-8" >> /etc/locale.gen \
+    && wget -O /usr/share/fonts/SimHei.ttf "https://github.com/hexj/bin-file/raw/master/fonts/SimHei.ttf"
+
 RUN apt-get clean -y \
     && apt-get autoclean -y \
     && apt-get autoremove -y \
