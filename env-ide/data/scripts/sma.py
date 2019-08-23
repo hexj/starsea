@@ -59,6 +59,7 @@ cerebro.run()  # run it all
 print(cerebro.broker.getvalue())
 from matplotlib import pyplot as plt
 plt.rcParams['figure.figsize'] = [16, 10]
-# cerebro.plot()  # and plot it with a single command
+cerebro.plot()  # and plot it with a single command
 # cerebro.plot(iplot=False)
+plt.show()
 print("strategy end")
