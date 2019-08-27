@@ -1,9 +1,9 @@
 jupyterthemes
 requests
 numpy
-taos
+tables
 #python量化 https://www.bilibili.com/video/av24528809?p=2
-pandas<0.25.0
+pandas #<0.25.0
 pandas_datareader
 tushare
 matplotlib # == 3.0.0
