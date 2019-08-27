@@ -1,3 +1,5 @@
+data/
+TDengine/
 *.h5
 .vscode/
 .history
