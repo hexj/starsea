@@ -17,8 +17,13 @@ function docker_install()
     # 创建公用网络==bridge模式
     #docker network create starsea_network
 }
+if [ ! -d "TDengine" ]; then
+  git clone https://github.com/PAIR-code/facets
+fi
 
 # 执行函数
 docker_install
+# docker-compose build 
+docker system prune -f
 docker-compose up
 docker logs starsea 2>&1 | grep "token" | grep -v "NotebookApp"
