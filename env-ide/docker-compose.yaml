@@ -11,7 +11,7 @@ services:
             - ./data:/home/jovyan/models
             - ./ss-jupyter:/home/jovyan/ss
             - ./data/.cache:/home/jovyan/.cache
-            - ./data/fonts:/usr/share/fonts
+            # - ./data/fonts:/usr/share/fonts
             # - ./pip.conf:/etc/pip.conf
         # command: ""
         #   pip install -r /home/jovyan/ss/requirements.txt
@@ -25,7 +25,12 @@ services:
         environment:
             - JUPYTER_ENABLE_LAB=true
             - JUPYTER_TOKEN=starsea
-
+        stdin_open: true
+        tty: true
+        extra_hosts:
+            - "github.com:192.30.253.113"
+            - "assets-cdn.github.com:185.199.108.153"
+            - "github.global.ssl.fastly.net:151.101.185.194"
     # redis:
     #     container_name: redis
     #     image: redis:alpine

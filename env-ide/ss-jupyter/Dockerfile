@@ -35,13 +35,23 @@ RUN wget https://downloads.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.
     && rm -rf ta-lib \
     && rm ta-lib-0.4.0-src.tar.gz
 
+# RUN cd /app  && git clone https://github.com/PAIR-code/facets 
+ADD facets /app/facets/
+RUN cd /app/facets/facets_dive \
+    # && jupyter notebook --generate-config \
+    && cd /app/facets/facets_dive && jupyter nbextension install /app/facets/facets-dist/ 
+    # && cd /app/facets/facets_dive
+
 USER jovyan
 COPY pip.conf /etc/pip.conf
 COPY requirements.txt /home/jovyan/requirements.txt
 # RUN pip install -U pip setuptools numpy cython 
 # RUN pip install Cython git+https://github.com/rkern/line_profiler.git
 # RUN pip install bcolz
-RUN pip install -r /home/jovyan/requirements.txt
+RUN pip install -r /home/jovyan/requirements.txt \
+    && echo "c.NotebookApp.iopub_data_rate_limit = 1000000000" >> ~/.jupyter/jupyter_notebook_config.py 
+
+
 # RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager \
 #     && pip install jupyter_contrib_nbextensions jupyter_nbextensions_configurator \
 #     && jupyter contrib nbextension install --user

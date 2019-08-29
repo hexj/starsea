@@ -1,3 +1,6 @@
+data/
+facets/
+TDengine/
 *.h5
 .vscode/
 .history
