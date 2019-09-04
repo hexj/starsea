@@ -41,15 +41,20 @@ function getlibtaos(){
         wget -P ss-jupyter/deps/ https://github.com/2efPer/tdengine-docker/raw/master/spark-app/libtaos.so
     fi
 }
-# 执行函数
-docker_install
-gettdengine
-getfacet
-# docker-compose build 
-docker system prune -f
-docker pull mysql
+function main(){
+    # 执行函数
+    docker_install
+    gettdengine
+    getfacet
+    # docker-compose build 
+    docker system prune -f
+    docker pull mysql
 
-cp -r taos/TDengine/src/connector/python/linux/python3 ss-jupyter/deps/taos-py3
-getlibtaos
-docker-compose up --build
-# docker logs starsea 2>&1 | grep "token" | grep -v "NotebookApp"
+    cp -r taos/TDengine/src/connector/python/linux/python3 ss-jupyter/deps/taos-py3
+    getlibtaos
+    # docker-compose build
+    docker-compose up --build
+    # docker logs starsea 2>&1 | grep "token" | grep -v "NotebookApp"
+}
+
+main
