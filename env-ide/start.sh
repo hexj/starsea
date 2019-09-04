@@ -17,7 +17,7 @@ function docker_install()
     # 创建公用网络==bridge模式
     #docker network create starsea_network
 }
-if [ ! -d "TDengine" ]; then
+if [ ! -d "facets" ]; then
   git clone https://github.com/PAIR-code/facets
 fi
 
