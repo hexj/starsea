@@ -46,13 +46,12 @@ function main(){
     docker_install
     gettdengine
     getfacet
-    # docker-compose build 
+    docker-compose build 
     docker system prune -f
     docker pull mysql
 
     cp -r taos/TDengine/src/connector/python/linux/python3 ss-jupyter/deps/taos-py3
     getlibtaos
-    # docker-compose build
     docker-compose up --build
     # docker logs starsea 2>&1 | grep "token" | grep -v "NotebookApp"
 }

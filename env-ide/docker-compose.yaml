@@ -14,13 +14,6 @@ services:
             - /bin/sh
             - -c
             - |
-                mkdir -p /app/TDengine/build
-                cd /app/TDengine/build &&  make install
-                # && build && cmake ../TDengine && cmake --build . 
-                cp /app/build/build/bin/* /app/
-                cp /app/TDengine/build/build/lib/libtaos.so /usr/lib64 
-                pip install /app/TDengine/src/connector/python/python3/
-                ldconfig
                 jt -t onedork -f roboto -fs 14 -nfs 14 -tfs 14 -ofs 11
                 jupyter lab --allow-root --ip=0.0.0.0 --no-browser
         restart: always
