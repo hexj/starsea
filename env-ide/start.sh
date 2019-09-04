@@ -17,8 +17,10 @@ function docker_install()
     # 创建公用网络==bridge模式
     #docker network create starsea_network
 }
-if [ ! -d "facets" ]; then
+if [ ! -d "ss-jupyter/facets" ]; then
+  cd ss-jupyter
   git clone https://github.com/PAIR-code/facets
+  cd ..
 fi
 
 # 执行函数
