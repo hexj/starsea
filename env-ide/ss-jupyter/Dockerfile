@@ -39,12 +39,13 @@ RUN wget https://downloads.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.
 ADD deps/facets /app/facets/
 RUN cd /app/facets/facets_dive \
     && cd /app/facets/facets_dive && jupyter nbextension install /app/facets/facets-dist/ 
-    # && cd /app/facets/facets_dive
+    # && cd /app/facets/facets_dive 
 
-ADD deps/libtaos.so /usr/lib64 
+ADD deps/taos.cfg /etc/taos/
+ADD deps/libtaos.so /usr/lib64
 ADD deps/taos-py3 /app/taos-py3/
-RUN pip install /app/taos-py3/ 
-# ADD deps/taos.cfg /etc/taos/
+RUN pip install /app/taos-py3/
+# RUN mkdir -p /app/TDengine/build
 # RUN cd /app/TDengine/ && cmake ../TDengine && cmake --build . \ 
 #     && cp /app/TDengine/build/bin/* /app/ \
 #     && cp /app/TDengine/build/lib/libtaos.so /usr/lib64 \

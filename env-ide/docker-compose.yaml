@@ -17,8 +17,6 @@ services:
                 mkdir -p /app/TDengine/build
                 cd /app/TDengine/build &&  make install
                 # && build && cmake ../TDengine && cmake --build . 
-                sed -i 's/# charset/  charset/g' /etc/taos/taos.cfg
-                sed -i 's/# defaultDB/  test/g' /etc/taos/taos.cfg 
                 cp /app/build/build/bin/* /app/
                 cp /app/TDengine/build/build/lib/libtaos.so /usr/lib64 
                 pip install /app/TDengine/src/connector/python/python3/
