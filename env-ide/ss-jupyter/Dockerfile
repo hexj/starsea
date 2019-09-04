@@ -42,7 +42,7 @@ RUN cd /app/facets/facets_dive \
     # && cd /app/facets/facets_dive 
 
 ADD deps/taos.cfg /etc/taos/
-ADD deps/libtaos.so /usr/lib64
+ADD deps/libtaos.so /usr/lib/
 ADD deps/taos-py3 /app/taos-py3/
 RUN pip install /app/taos-py3/
 # RUN mkdir -p /app/TDengine/build
