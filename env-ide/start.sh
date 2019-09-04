@@ -37,7 +37,7 @@ function getfacet()
     cd ../../../
 }
 function getlibtaos(){
-    if [ ! -f "jupyter/deps/libtaos.so" ]; then
+    if [ ! -f "ss-jupyter/deps/libtaos.so" ]; then
         wget -P ss-jupyter/deps/ https://github.com/2efPer/tdengine-docker/raw/master/spark-app/libtaos.so
     fi
 }
