@@ -10,7 +10,7 @@ USER root
 RUN echo "DEBIAN_FRONTEND noninteractive\nLC_ALL=zh_CN.UTF-8\nLANG=zh_CN.UTF-8\nLANGUAGE=zh_CN.UTF-8\n" >> /etc/environment \
     && apt-get update --fix-missing && apt-get upgrade -y \
     && apt-get install -y apt-utils make gcc fonts-humor-sans \
-    locales git python-tk \ 
+    locales git python-tk cmake build-essential \ 
     # tk-dev libagg-dev python-matplotlib \ 
     # python-blosc libpng-dev libffi-dev dvipng texlive-latex-base \
     && locale-gen zh_CN.UTF-8 \
@@ -36,11 +36,20 @@ RUN wget https://downloads.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.
     && rm ta-lib-0.4.0-src.tar.gz
 
 # RUN cd /app  && git clone https://github.com/PAIR-code/facets 
-ADD facets /app/facets/
+ADD deps/facets /app/facets/
 RUN cd /app/facets/facets_dive \
-    # && jupyter notebook --generate-config \
     && cd /app/facets/facets_dive && jupyter nbextension install /app/facets/facets-dist/ 
     # && cd /app/facets/facets_dive
+
+ADD deps/libtaos.so /usr/lib64 
+ADD deps/taos-py3 /app/taos-py3/
+RUN pip install /app/taos-py3/ 
+# ADD deps/taos.cfg /etc/taos/
+# RUN cd /app/TDengine/ && cmake ../TDengine && cmake --build . \ 
+#     && cp /app/TDengine/build/bin/* /app/ \
+#     && cp /app/TDengine/build/lib/libtaos.so /usr/lib64 \
+#     && pip install /app/TDengine/src/connector/python/linux/python3/ \
+#     && ldconfig
 
 USER jovyan
 COPY pip.conf /etc/pip.conf
@@ -48,7 +57,10 @@ COPY requirements.txt /home/jovyan/requirements.txt
 # RUN pip install -U pip setuptools numpy cython 
 # RUN pip install Cython git+https://github.com/rkern/line_profiler.git
 # RUN pip install bcolz
-RUN pip install -r /home/jovyan/requirements.txt \
+RUN pip install jupyter_contrib_nbextensions jupyter_nbextensions_configurator \
+    && jupyter nbextensions_configurator enable --user \
+    && jupyter contrib nbextension install --user \
+    && pip install -r /home/jovyan/requirements.txt \
     && echo "c.NotebookApp.iopub_data_rate_limit = 1000000000" >> ~/.jupyter/jupyter_notebook_config.py 
 
 

@@ -17,15 +17,39 @@ function docker_install()
     # 创建公用网络==bridge模式
     #docker network create starsea_network
 }
-if [ ! -d "ss-jupyter/facets" ]; then
-  cd ss-jupyter
-  git clone https://github.com/PAIR-code/facets
-  cd ..
-fi
-
+function gettdengine(){
+    cd taos
+    if [ ! -d "TDengine" ]; then
+        git clone https://github.com/taosdata/TDengine.git
+    fi
+    cd TDengine
+    git pull
+    cd ../..
+}
+function getfacet()
+{   
+    cd ss-jupyter/deps
+    if [ ! -d "facets" ]; then
+        git clone https://github.com/PAIR-code/facets
+    fi
+    cd facets
+    git pull
+    cd ../../../
+}
+function getlibtaos(){
+    if [ ! -f "jupyter/deps/libtaos.so" ]; then
+        wget -P ss-jupyter/deps/ https://github.com/2efPer/tdengine-docker/raw/master/spark-app/libtaos.so
+    fi
+}
 # 执行函数
 docker_install
+gettdengine
+getfacet
 # docker-compose build 
 docker system prune -f
-docker-compose up
-docker logs starsea 2>&1 | grep "token" | grep -v "NotebookApp"
+docker pull mysql
+
+cp -r taos/TDengine/src/connector/python/linux/python3 ss-jupyter/deps/taos-py3
+getlibtaos
+docker-compose up --build
+# docker logs starsea 2>&1 | grep "token" | grep -v "NotebookApp"

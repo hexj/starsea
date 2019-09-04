@@ -9,6 +9,8 @@ TDengine/
 *.iml
 *.ipr
 *.iws
+libtaos.so
+taos-py3/
 .idea/
 target/
 nbproject/

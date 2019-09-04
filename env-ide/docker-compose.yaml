@@ -4,23 +4,27 @@ services:
         container_name: starsea
         image: starsea-jupyter
         build: ./ss-jupyter
-        # runtime: runsc
         ports:
             - "8888:8888"
         volumes:
-            - ./data:/home/jovyan/models
+            - ./notebooks:/home/jovyan/notebooks
             - ./ss-jupyter:/home/jovyan/ss
             - ./data/.cache:/home/jovyan/.cache
-            # - ./data/fonts:/usr/share/fonts
-            # - ./pip.conf:/etc/pip.conf
-        # command: ""
-        #   pip install -r /home/jovyan/ss/requirements.txt
         entrypoint:  
             - /bin/sh
             - -c
             - |
-              jt -t onedork -f roboto -fs 14 -nfs 14 -tfs 14 -ofs 11
-              jupyter lab --allow-root --ip=0.0.0.0 --no-browser
+                mkdir -p /app/TDengine/build
+                cd /app/TDengine/build &&  make install
+                # && build && cmake ../TDengine && cmake --build . 
+                sed -i 's/# charset/  charset/g' /etc/taos/taos.cfg
+                sed -i 's/# defaultDB/  test/g' /etc/taos/taos.cfg 
+                cp /app/build/build/bin/* /app/
+                cp /app/TDengine/build/build/lib/libtaos.so /usr/lib64 
+                pip install /app/TDengine/src/connector/python/python3/
+                ldconfig
+                jt -t onedork -f roboto -fs 14 -nfs 14 -tfs 14 -ofs 11
+                jupyter lab --allow-root --ip=0.0.0.0 --no-browser
         restart: always
         environment:
             - JUPYTER_ENABLE_LAB=true
@@ -31,6 +35,46 @@ services:
             - "github.com:192.30.253.113"
             - "assets-cdn.github.com:185.199.108.153"
             - "github.global.ssl.fastly.net:151.101.185.194"
+            
+    # mysql:
+    #     image: mysql
+    #     container_name: mysql-db # 容器名
+    #     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci #设置utf8字符集
+    #     restart: always
+    #     environment:
+    #       MYSQL_ROOT_PASSWORD: root #root管理员用户密码
+    #       MYSQL_USER: test   #创建test用户
+    #       MYSQL_PASSWORD: testpwd  #设置test用户的密码
+    #     ports:
+    #       - '6606:3306'  #host物理直接映射端口为6606
+    #     volumes:
+    #         #mysql数据库挂载到host物理机目录/e/docker/mysql/data/db
+    #       - "./data/mysqldata:/var/lib/mysql"  
+    #         #容器的配置目录挂载到host物理机目录/e/docker/mysql/data/conf  
+    #       - "./conf/mysql:/etc/mysql/conf.d"
+
+    taos:
+        image: taos
+        container_name: taos-db
+        build: ./taos
+        restart: always
+        ports:
+            - 6020:6020
+            - 6030:6030
+            - 6035:6035
+            - 6030-6039:6030-6039/udp
+        volumes:
+            - ./data/taosdata:/data
+            - ./taos/taos.cfg:/etc/taos/taos.cfg
+        entrypoint:  
+            - /bin/sh
+            - -c
+            - |
+                cd /app/TDengine/build && build && cmake ../TDengine && cmake --build . 
+                cp /app/build/build/bin/* /app/
+                /app/taosd -c /etc/taos
+        stdin_open: true
+        tty: true
     # redis:
     #     container_name: redis
     #     image: redis:alpine

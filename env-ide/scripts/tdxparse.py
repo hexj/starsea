@@ -35,6 +35,8 @@ def parse_tdxfile(fname):
             row[2]=row[2]/100
             row[3]=row[3]/100
             row[4]=row[4]/100
+            print(len(row))
+            print("======")
             row.pop() #移除最后无意义字段
             row.insert(0,code)
             dataSet.append(row)  
@@ -55,16 +57,23 @@ def parse_folder(folder_name):
     maindf = pd.concat(rstdf)
     return maindf
 
+from sqlalchemy import * 
+def writetable(df):
+    engine=create_engine("mysql+pymysql://root:a5230411@localhost:3306/test",echo=True)
+    metadata=MetaData(engine)
+
 def concattest():
     fname = folder_name +"/sh000001.day"
     fname2 = folder_name +"/sh000002.day"
     df1 = parse_tdxfile(fname)
-    df2 = parse_tdxfile(fname2)
-    maindf = pd.concat([df1,df2])
-    maindf[['tradeDate']>=20190821 & ['tradeDate']<=20190823]
-    print(maindf['tradeDate'].tail())
-    print(maindf.tail())
-    print(len(maindf))
+    # df2 = parse_tdxfile(fname2)
+    # maindf = pd.concat([df1,df2])
+    # maindf[['tradeDate']>=20190821 & ['tradeDate']<=20190823]
+    # print(maindf['tradeDate'].tail())
+    # print(maindf.tail())
+    # print(len(maindf))
+    import taos
+    df1
 
 def writeall():
     # folder_name = "/Users/hexj/tools/data/tmp"
