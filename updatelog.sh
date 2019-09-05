@@ -1,4 +1,5 @@
 #!/bin/sh
+#mv ./git/refs/original ../backup
 
 git filter-branch --env-filter '
 
