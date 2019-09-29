@@ -1,0 +1,3 @@
+[submodule "wblei/quant-spider"]
+	path = wblei/quant-spider
+	url = https://github.com/leiweibo/quant-spider/

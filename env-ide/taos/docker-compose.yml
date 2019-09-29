@@ -21,6 +21,6 @@ services:
         - |
           cd /app/TDengine/build && build && cmake ../TDengine && cmake --build . 
           cp /app/build/build/bin/* /app/
-          /app/taosd -c /etc/taos
+          # /app/taosd -c /etc/taos
     stdin_open: true
     tty: true

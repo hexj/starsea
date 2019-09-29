@@ -8,7 +8,7 @@ services:
             - "8888:8888"
         volumes:
             - ./notebooks:/home/jovyan/notebooks
-            - ./ss-jupyter:/home/jovyan/ss
+            - ./scripts:/home/jovyan/scripts
             - ./data/.cache:/home/jovyan/.cache
         entrypoint:  
             - /bin/sh

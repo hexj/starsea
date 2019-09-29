@@ -10,7 +10,7 @@ USER root
 RUN echo "DEBIAN_FRONTEND noninteractive\nLC_ALL=zh_CN.UTF-8\nLANG=zh_CN.UTF-8\nLANGUAGE=zh_CN.UTF-8\n" >> /etc/environment \
     && apt-get update --fix-missing && apt-get upgrade -y \
     && apt-get install -y apt-utils make gcc fonts-humor-sans \
-    locales git python-tk cmake build-essential \ 
+    locales git python-tk cmake build-essential tk tk-dev \ 
     # tk-dev libagg-dev python-matplotlib \ 
     # python-blosc libpng-dev libffi-dev dvipng texlive-latex-base \
     && locale-gen zh_CN.UTF-8 \
