@@ -38,7 +38,20 @@ function getfacet()
 }
 function getlibtaos(){
     if [ ! -f "ss-jupyter/deps/libtaos.so" ]; then
+        echo "get libtaos"
         wget -P ss-jupyter/deps/ https://github.com/2efPer/tdengine-docker/raw/master/spark-app/libtaos.so
+    fi
+}
+function getfont(){
+    if [ ! -f "ss-jupyter/deps/SimHei.ttf" ]; then
+        echo "get font"
+        wget -P ss-jupyter/deps/ https://github.com/hexj/bin-file/raw/master/fonts/SimHei.ttf
+    fi
+}
+function gettalib(){
+    if [ ! -f "ss-jupyter/deps/ta-lib-0.4.0-src.tar.gz" ]; then
+        echo "get talib"
+        wget -P ss-jupyter/deps/ https://downloads.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
     fi
 }
 function main(){
@@ -46,6 +59,8 @@ function main(){
     docker_install
     gettdengine
     getfacet
+    getfont
+    gettalib
     # docker-compose build 
     docker system prune -f
     docker pull mysql

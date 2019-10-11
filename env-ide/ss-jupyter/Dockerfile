@@ -7,7 +7,7 @@ COPY source.list /etc/apt/sources.list
 # RUN whoami
 USER root
 # MPLBACKEND=TkAgg
-RUN echo "DEBIAN_FRONTEND noninteractive\nLC_ALL=zh_CN.UTF-8\nLANG=zh_CN.UTF-8\nLANGUAGE=zh_CN.UTF-8\n" >> /etc/environment \
+RUN echo "DEBIAN_FRONTEND noninteractive\nLC_ALL=zh_CN.UTF-8\nLANG=zh_CN.UTF-8\nLANGUAGE=zh_CN.UTF-8\nLD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib\n" >> /etc/environment \
     && apt-get update --fix-missing && apt-get upgrade -y \
     && apt-get install -y apt-utils make gcc fonts-humor-sans \
     locales git python-tk cmake build-essential tk tk-dev \ 
@@ -17,7 +17,9 @@ RUN echo "DEBIAN_FRONTEND noninteractive\nLC_ALL=zh_CN.UTF-8\nLANG=zh_CN.UTF-8\n
     && localedef -i zh_CN -c -f UTF-8 -A /usr/share/locale/locale.alias zh_CN.UTF-8 \
     && echo "LANG=zh_CN.UTF-8" > /etc/locale.conf \
     && echo "zh_CN.UTF-8 UTF-8" >> /etc/locale.gen \
-    && wget -O /usr/share/fonts/SimHei.ttf "https://github.com/hexj/bin-file/raw/master/fonts/SimHei.ttf"
+    && pwd
+    # && wget -O /usr/share/fonts/SimHei.ttf "https://github.com/hexj/bin-file/raw/master/fonts/SimHei.ttf"
+ADD deps/SimHei.ttf /usr/share/fonts/
 
 RUN apt-get clean -y \
     && apt-get autoclean -y \
@@ -25,8 +27,9 @@ RUN apt-get clean -y \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && rm -rf /home/jovyan/.cache/matplotlib/
 
-RUN wget https://downloads.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz \
-    && tar xvf ta-lib-0.4.0-src.tar.gz \
+COPY deps/ta-lib-0.4.0-src.tar.gz .
+# RUN wget https://downloads.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
+RUN tar xvf ta-lib-0.4.0-src.tar.gz \
     && cd ta-lib \
     && ./configure --prefix=/usr \
     && make \
