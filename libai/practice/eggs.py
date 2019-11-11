@@ -101,10 +101,10 @@ def index():
     strdaynumber=daynumber.__str__()
 
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    print('strpriceList=',strpriceList)
+    #print('strpriceList=',strpriceList)
     print('strcostPriceList',strcostPriceList)
     print('stramountPriceList',stramountPriceList)
-    print('strdaynumber',strdaynumber)
+    #print('strdaynumber',strdaynumber)
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
     return ''' <!DOCTYPE html>
@@ -126,28 +126,13 @@ def index():
         // 指定图表的配置项和数据
         var option = {
             title: {
-                text: '折线图堆叠'
-            },
-            tooltip: {
-                trigger:'axis'
+                text: '定额定量定投对比图'
             },
             legend: {
-                data:['当天随机价格','固定总价成本','固定总额成本']
-            },
-            grid:{
-                left:'13%',
-                right:'14%',
-                bottom: '13%',
-                containLaber:true
-            },
-            toolbox:{
-                feature:{
-                    saveAsImage:{}
-                }
+                data:['邮件营销','联盟广告','视频广告','直接访问','搜索引擎']
             },
             xAxis: {
                 type:'category',
-                boundaryGap:false,
                 data : '''+strdaynumber +'''
             },
             yAxis: {
@@ -157,19 +142,19 @@ def index():
             {
                 name: '当天随机价格',
                 type: 'line',
-                stack:'总量',
+                smooth: true,
                 data: '''+strpriceList+'''
             },
             {
                 name:'固定总价成本',
                 type:'line',
-                stack:'总量',
+                smooth: true,
                 data:'''+strcostPriceList+'''
             },
             {
                 name:'固定总额成本',
                 type:'line',
-                stack:'总量',
+                smooth: true,
                 data:'''+stramountPriceList+'''
             }
             ]
