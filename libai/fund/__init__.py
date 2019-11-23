@@ -5,6 +5,7 @@ import requests
 import re
 import time
 import json
+import mysql.connector
 
 
 
@@ -159,8 +160,23 @@ if __name__ =='__main__':
 
     time.sleep(5)
 
+    mydb = mysql.connector.connect(
+        host="127.0.0.1",  # 数据库主机地址
+        user="root",  # 数据库用户名
+        passwd="12345678",  # 数据库密码
+        auth_plugin='mysql_native_password',
+        database='fund_database'
+    )
+
+
     for fd in fund_list:
         code = fd.jjdm
+
+        mycursor = mydb.cursor()
+        create_sql = "CREATE TABLE IF NOT EXISTS FUND_LSJZ_" + code + " ( id INT AUTO_INCREMENT PRIMARY KEY,fd_date VARCHAR(255),lljz VARCHAR(255),dwjz  VARCHAR(255),sgzt VARCHAR(255) ,shzt VARCHAR(255))"
+        print(create_sql)
+        mycursor.execute(create_sql)
+
         for index in range(1, 100):
             url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303333554012487365_' + time_pre + '&fundCode=' + code + '&pageIndex=' + str(
                 index) + '&pageSize=' + str(pageSize) + '&startDate=&endDate=&_=' + time_now
@@ -172,7 +188,7 @@ if __name__ =='__main__':
             result_split = response.split(time_pre + '(')
             response_json = result_split[1][:-1]
             json_res = json.loads(response_json, encoding='utf-8')
-
+            total_size = 0
             fund_lsjz_list = []
 
             if 0 == json_res.get('ErrCode'):
@@ -195,10 +211,19 @@ if __name__ =='__main__':
 
                     fund_lsjz_list.append(fund)
 
-                    print(fund.__str__())
+                    time.sleep(1)
+
+                    sql = "INSERT INTO FUND_LSJZ_" + code + " (fd_date, lljz,dwjz,sgzt,shzt) VALUES (%s, %s,%s,%s,%s)"
+                    val = (fund.date, fund.lljz, fund.dwjz, fund.sgzt, fund.shzt);
+                    mycursor.execute(sql, val)
+                    mydb.commit()
+                    print("1 条记录插入, ID:", mycursor.lastrowid)
 
                 if total_size - index * pageSize <= 0:
                     time.sleep(1)
                     break;
 
-                print('基金名称：'+fd.jjname+',基金代码：'+str(code)+''+'的基金 历史数据合计：'+str(total_size))
+            print('基金名称：'+fd.jjname+',基金代码：'+str(code)+''+'的基金 历史数据合计：'+str(total_size))
+
+            time.sleep(2)
+
