@@ -1,0 +1,54 @@
+version: '3'
+services:
+    mysql:
+        image: mysql
+        container_name: mysql-db # 容器名
+        command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci #设置utf8字符集
+        restart: always
+        environment:
+          MYSQL_ROOT_PASSWORD: root #root管理员用户密码
+          MYSQL_USER: test   #创建test用户
+          MYSQL_PASSWORD: testpwd  #设置test用户的密码
+        ports:
+          - '6606:3306'  #host物理直接映射端口为6606
+        volumes:
+            #mysql数据库挂载到host物理机目录/e/docker/mysql/data/db
+          - "./data/mysqldata:/var/lib/mysql"  
+            #容器的配置目录挂载到host物理机目录/e/docker/mysql/data/conf  
+          - "./conf/mysql:/etc/mysql/conf.d"
+        networks:
+            - starsea-net
+networks:
+   default:
+    external:
+      name: starsea-net
+
+    # taos:
+    #     image: taos
+    #     container_name: taos-db
+    #     build: ./taos
+    #     restart: always
+    #     ports:
+    #         - 6020:6020
+    #         - 6030:6030
+    #         - 6035:6035
+    #         - 6030-6039:6030-6039/udp
+    #     volumes:
+    #         - ./data/taosdata:/data
+    #         - ./taos/taos.cfg:/etc/taos/taos.cfg
+    #     entrypoint:  
+    #         - /bin/sh
+    #         - -c
+    #         - |
+    #             cd /app/TDengine/build && build && cmake ../TDengine && cmake --build . 
+    #             cp /app/build/build/bin/* /app/
+    #             /app/taosd -c /etc/taos
+    #     stdin_open: true
+    #     tty: true
+    # redis:
+    #     container_name: redis
+    #     image: redis:alpine
+    #     restart: always
+    #     command: redis-server --requirepass mypasswd
+    #     ports :
+    #         - 6379:6379
