@@ -35,13 +35,13 @@ class TTJJ_LJJZ_Fund(object):
         self.date='' #日期
         self.dwjz='' #单位净值
         self.lljz='' #累计净值
-        self.sdate='' #不清楚
-        self.actualsyi='' #实际价值
+        # self.sdate='' #不清楚
+        # self.actualsyi='' #实际价值
         self.sgzt='' #申购状态
         self.shzt='' #赎回状态
 
     def __str__(self):
-        return '日期:'+self.date+',单位净值:'+self.dwjz+',累计净值:'+self.lljz+',sdate:'+self.sdate+',实际价值:'+self.actualsyi+',申购状态:'+self.sgzt+',赎回状态:'+self.shzt
+        return '日期:'+self.date+',单位净值:'+self.dwjz+',累计净值:'+self.lljz+',申购状态:'+self.sgzt+',赎回状态:'+self.shzt
 
 
 
@@ -129,7 +129,7 @@ if __name__ =='__main__':
         count_pager_result_split=datas_pager_result_split[1].split(',count:')
         json_array = json.loads(count_pager_result_split[0],encoding='utf-8')
         for jba in json_array:
-            fund = TTJJ_Fund()
+            fund_ = TTJJ_Fund()
             fund.xh = jba[14]
             fund.jjdm = jba[0]
             fund.jjname = jba[1]
@@ -158,7 +158,7 @@ if __name__ =='__main__':
 
     pageSize = 20
 
-    time.sleep(5)
+    time.sleep(1)
 
     mydb = mysql.connector.connect(
         host="127.0.0.1",  # 数据库主机地址
@@ -176,6 +176,7 @@ if __name__ =='__main__':
         create_sql = "CREATE TABLE IF NOT EXISTS FUND_LSJZ_" + code + " ( id INT AUTO_INCREMENT PRIMARY KEY,fd_date VARCHAR(255),lljz VARCHAR(255),dwjz  VARCHAR(255),sgzt VARCHAR(255) ,shzt VARCHAR(255))"
         print(create_sql)
         mycursor.execute(create_sql)
+        total_size = 0
 
         for index in range(1, 100):
             url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303333554012487365_' + time_pre + '&fundCode=' + code + '&pageIndex=' + str(
@@ -188,7 +189,7 @@ if __name__ =='__main__':
             result_split = response.split(time_pre + '(')
             response_json = result_split[1][:-1]
             json_res = json.loads(response_json, encoding='utf-8')
-            total_size = 0
+
             fund_lsjz_list = []
 
             if 0 == json_res.get('ErrCode'):
@@ -202,28 +203,35 @@ if __name__ =='__main__':
                     json_fund = list[index]
                     fund = TTJJ_LJJZ_Fund()
                     fund.date = json_fund.get('FSRQ')
+                    if fund.date is None:
+                        fund.date = ''
                     fund.lljz = json_fund.get('LJJZ')
+                    if fund.lljz is None:
+                        fund.lljz = ''
                     fund.dwjz = json_fund.get('DWJZ')
-                    # fund.sdate=json_fund.get('SDATE')
-                    # fund.actualsyi=json_fund.get('ACTUALSYI')
+                    if fund.dwjz is None:
+                        fund.dwjz = ''
+                    # fund.sdate=json_fund.get('SDATE','')
+                    # fund.actualsyi=json_fund.get('ACTUALSYI','')
                     fund.sgzt = json_fund.get('SGZT')
+                    if fund.sgzt is None:
+                        fund.sgzt = ''
                     fund.shzt = json_fund.get('SHZT')
+                    if fund.shzt is None:
+                        fund.shzt = ''
 
                     fund_lsjz_list.append(fund)
-
-                    time.sleep(1)
 
                     sql = "INSERT INTO FUND_LSJZ_" + code + " (fd_date, lljz,dwjz,sgzt,shzt) VALUES (%s, %s,%s,%s,%s)"
                     val = (fund.date, fund.lljz, fund.dwjz, fund.sgzt, fund.shzt);
                     mycursor.execute(sql, val)
                     mydb.commit()
-                    print("1 条记录插入, ID:", mycursor.lastrowid)
+                    print("1 条记录插入, ID:"+str(mycursor.lastrowid)+','+fund.__str__())
 
                 if total_size - index * pageSize <= 0:
-                    time.sleep(1)
                     break;
+            time.sleep(1)
+        print('基金序号：'+str(fd.xh)+'基金名称：'+fd.jjname+',基金代码：'+str(code)+''+'的基金 历史数据合计：'+str(total_size))
 
-            print('基金名称：'+fd.jjname+',基金代码：'+str(code)+''+'的基金 历史数据合计：'+str(total_size))
 
-            time.sleep(2)
 
