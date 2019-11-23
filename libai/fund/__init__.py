@@ -29,6 +29,18 @@ class TTJJ_Fund(object):
     def __str__(self):
         return '序号:'+self.xh+',基金代码:'+self.jjdm+',金简称:'+self.jjname+',单位净值:'+self.dwjz+',累计净值:'+self.ljjz+':日增长值'+self.rzzz+',日增长率:'+self.rzzl+',赎回状态:'+ self.shzt+', 申购状态:'+  self.sgzt+',手续费:'+ self.sxf
 
+class TTJJ_LJJZ_Fund(object):
+    def __init__(self):
+        self.date='' #日期
+        self.dwjz='' #单位净值
+        self.lljz='' #累计净值
+        self.sdate='' #不清楚
+        self.actualsyi='' #实际价值
+        self.sgzt='' #申购状态
+        self.shzt='' #赎回状态
+
+    def __str__(self):
+        return '日期:'+self.date+',单位净值:'+self.dwjz+',累计净值:'+self.lljz+',sdate:'+self.sdate+',实际价值:'+self.actualsyi+',申购状态:'+self.sgzt+',赎回状态:'+self.shzt
 
 
 
@@ -129,5 +141,64 @@ if __name__ =='__main__':
             fund.shzt = jba[10]
             fund.sxf  = jba[17]
             fund_list.append(fund)
+
+            # for fd in fund_list:
+            #     print(fd.__str__())
+
+    # 打印每个基金的历史净值
+    t = time.time()
+    time_now = str(int(round(t * 1000)))  # 当前的时间
+
+    time_pre = str(int(round(t * 1000)) - 30 * 1000)  # 进入网页的时间戳
+
+
+
+    # code = '001838'
+
+    pageSize = 20
+
+    time.sleep(5)
+
     for fd in fund_list:
-        print(fd.__str__())
+        code = fd.jjdm
+        for index in range(1, 100):
+            url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303333554012487365_' + time_pre + '&fundCode=' + code + '&pageIndex=' + str(
+                index) + '&pageSize=' + str(pageSize) + '&startDate=&endDate=&_=' + time_now
+            headers = {
+                'Referer': 'http://fundf10.eastmoney.com/jjjz_' + code + '.html'
+            }
+            res = requests.get(url, headers=headers)
+            response = res.text
+            result_split = response.split(time_pre + '(')
+            response_json = result_split[1][:-1]
+            json_res = json.loads(response_json, encoding='utf-8')
+
+            fund_lsjz_list = []
+
+            if 0 == json_res.get('ErrCode'):
+                json_data = json_res.get('Data')
+                list = json_data.get('LSJZList')
+                total_size = json_res.get('TotalCount')
+
+                size = len(list)
+
+                for index in range(size):
+                    json_fund = list[index]
+                    fund = TTJJ_LJJZ_Fund()
+                    fund.date = json_fund.get('FSRQ')
+                    fund.lljz = json_fund.get('LJJZ')
+                    fund.dwjz = json_fund.get('DWJZ')
+                    # fund.sdate=json_fund.get('SDATE')
+                    # fund.actualsyi=json_fund.get('ACTUALSYI')
+                    fund.sgzt = json_fund.get('SGZT')
+                    fund.shzt = json_fund.get('SHZT')
+
+                    fund_lsjz_list.append(fund)
+
+                    print(fund.__str__())
+
+                if total_size - index * pageSize <= 0:
+                    time.sleep(1)
+                    break;
+
+                print('基金名称：'+fd.jjname+',基金代码：'+str(code)+''+'的基金 历史数据合计：'+str(total_size))
