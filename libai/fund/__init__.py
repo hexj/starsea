@@ -53,13 +53,13 @@ if __name__ =='__main__':
     bf = BeautifulSoup(html, 'lxml')
     div = bf.find_all('div', id='tableDiv')
     div_bf = BeautifulSoup(str(div[0]), 'lxml')
-    tbody= div_bf.find_all('tbody')
+    tbody = div_bf.find_all('tbody')
     tbody_bf = BeautifulSoup(str(tbody[0]), 'lxml')
     trs = tbody_bf.find_all('tr')
-    count=len(trs[:])
-    print(str(count))
+    count = len(trs[:])
+    # print(str(count))
 
-    fund_list=[]
+    fund_list = []
     for index in range(count):
 
         fund = TTJJ_Fund()
@@ -111,55 +111,58 @@ if __name__ =='__main__':
     span = div_pager[0].find_all('span',class_='nv')
     #print(str(span))
 
-    number=re.findall(r'\d+', str(span[0]))
-    #print(str(number[0]))
+    number = re.findall(r'\d+', str(span[0]))
+    # print('number[0]:'+str(number[0]))
 
     fund_page_url='http://fund.eastmoney.com/Data/Fund_JJJZ_Data.aspx?t=1&lx=1&letter=&gsid=&text=&sort=zdf,desc'
 
-    for index in range(2,int(number[0])):
+    for index in range(2, int(number[0])):
         pager = '&page=' + str(index)+',200'
         t = time.time()
-        dt='&dt='+str(int(round(t * 1000)))
-        end='&atfc=&onlySale=0'
-        requests_url=fund_page_url+pager+dt+end
+        dt = '&dt='+str(int(round(t * 1000)))
+        end = '&atfc=&onlySale=0'
+        requests_url = fund_page_url+pager+dt+end
         req = requests.get(requests_url)
         pager_result = req.text
 
-        datas_pager_result_split=pager_result.split('datas:')
-        count_pager_result_split=datas_pager_result_split[1].split(',count:')
-        json_array = json.loads(count_pager_result_split[0],encoding='utf-8')
+        # if index == 11:
+        #     print('pager_result='+pager_result)
+
+        datas_pager_result_split = pager_result.split('datas:')
+        count_pager_result_split = datas_pager_result_split[1].split(',count:')
+        json_array = json.loads(count_pager_result_split[0], encoding='utf-8')
         for jba in json_array:
             fund_ = TTJJ_Fund()
-            fund.xh = jba[14]
-            fund.jjdm = jba[0]
-            fund.jjname = jba[1]
+            fund_.xh = jba[14]
+            fund_.jjdm = jba[0]
+            fund_.jjname = jba[1]
                 #fund.jjb_url =''
-            fund.dwjz = jba[3]
-            fund.ljjz = jba[4]
-            fund.rzzz = jba[7]
-            fund.rzzl = jba[8]+'%'
-            fund.sgzt = jba[9]
-            fund.shzt = jba[10]
-            fund.sxf  = jba[17]
-            fund_list.append(fund)
+            fund_.dwjz = jba[3]
+            fund_.ljjz = jba[4]
+            fund_.rzzz = jba[7]
+            fund_.rzzl = jba[8]+'%'
+            fund_.sgzt = jba[9]
+            fund_.shzt = jba[10]
+            fund_.sxf = jba[17]
+            fund_list.append(fund_)
 
-            # for fd in fund_list:
-            #     print(fd.__str__())
+            # if index > 11:
+            #     print('fund_='+fund_.__str__())
 
+            # print(fund.__str__())
+        # time.sleep(1)
     # 打印每个基金的历史净值
     t = time.time()
     time_now = str(int(round(t * 1000)))  # 当前的时间
 
     time_pre = str(int(round(t * 1000)) - 30 * 1000)  # 进入网页的时间戳
 
-
-
     # code = '001838'
 
     pageSize = 20
 
     time.sleep(1)
-
+    TTJJ_Fund
     mydb = mysql.connector.connect(
         host="127.0.0.1",  # 数据库主机地址
         user="root",  # 数据库用户名
@@ -167,7 +170,13 @@ if __name__ =='__main__':
         auth_plugin='mysql_native_password',
         database='fund_database'
     )
-
+    # print("**************************************************************************************************")
+    # print("**************************************************************************************************")
+    # print("**************************************************************************************************")
+    # print("**************************************************************************************************")
+    # for index in range(7400):
+    #     tt_f = fund_list[index]
+    #     print(tt_f.__str__())
 
     for fd in fund_list:
         code = fd.jjdm
