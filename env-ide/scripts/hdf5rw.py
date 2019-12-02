@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import h5py  #导入工具包
 import numpy as np
 #HDF5的写入：
