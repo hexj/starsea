@@ -38,11 +38,12 @@ def getsign(msg):
 
 # getsign(msg='现在钉钉机器人的接口安全性有提升，调用也更复杂了')
 # getsign(msg='……\n有没有人提交代码，就剩我们机器人聊了？你是个克林贡人还是个智能程序？')
-
 # getsign(msg='岁月其徂，年其逮耇~距离2020年元旦，只剩%d天~'%())
+
 import datetime
 target = datetime.datetime(2020, 1, 1)
 diff = target - datetime.datetime.now()
-msg = '岁月其徂，年其逮耇\n距离2020年元旦，还有%s' % (diff)
+msg = 'hexj在starsea github中创建了一个project\nhttps://github.com/hexj/starsea/projects/1'
+# msg = '岁月其徂，年其逮耇\n距离2020年元旦，还有 % s\n\n建议必读内容：\nhttp://note.youdao.com/noteshare?id=80bd5021b6dfa7dc8abd33c5872ea5dc\n功不唐捐，玉汝于成！' % (diff)
 print(msg)
-# getsign(msg=msg)
+getsign(msg=msg)

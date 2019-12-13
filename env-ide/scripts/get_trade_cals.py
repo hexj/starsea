@@ -18,7 +18,7 @@ def load_trade_days():
     trade_cal = pd.read_hdf(dbfilename, dbkey)
     trade_days = trade_cal[trade_cal['isOpen'] == 1]
     trade_days = trade_days.loc[:, ['calendarDate']]
-    # trade_days['calendarDate'] = pd.to_datetime(trade_days['calendarDate'])
+    # trade_days['calendarDate'] = pd.to_datetime(trade_days['calendarDate'],format='%y-%m-%d')
     # today = pd.Timestamp.now()
     # trade_days = trade_days[trade_days['calendarDate'] <= today]
     return trade_days
@@ -161,9 +161,14 @@ def parse_html(datestr, sleeptime=2):
 
 def handle_onelist(one_list, n):
     if(one_list is None) : return
+    mdf = pd.DataFrame()
     for index, row in one_list.iterrows():
         day = one_list.loc[index, 'calendarDate']
-        print(day)
+        # print(type(day))
+        print(day.strftime('%Y-%m-%d'))
+        df = parse_html(day.strftime('%Y-%m-%d'))
+        mdf.append(df)
+    return mdf
 
 import math
 def load_dates():
@@ -173,25 +178,28 @@ def load_dates():
     colname = 'calendarDate'
     now = datetime.datetime.now()
     today = now.strftime("%Y-%m-%d")
-    start_date = '2008-01-01'
-    trade_days[colname] = pd.to_datetime(
-        trade_days[colname], dayfirst=True)
+    # start_date = '2008-01-01'
+    start_date = '2019-11-15'
+    trade_days[colname] = pd.to_datetime(trade_days[colname], dayfirst=True)
+
     mask = (trade_days[colname] > start_date) & (trade_days[colname] <= today)
     trade_days1 = trade_days.loc[mask]
     length = len(trade_days1)
     print(length)
+
     # print(trade_days1.head(2))
     # print(trade_days1.tail(2))
-
+    maindf = pd.DataFrame()
     n = 4
     for i in range(n):
         one_list = trade_days1[math.floor(i / n * length):math.floor((i + 1) / n * length)]
-        print(i)
+        # print(i)
         if(i==3):
-            handle_onelist(one_list, i)
+            df = handle_onelist(one_list, i)
+            maindf.append(maindf)
         print(len(one_list))
-        print(one_list.head(2))
-        print(one_list.tail(2))
+        # print(one_list.head(2))
+        # print(one_list.tail(2))
     
     # today = '2016-10-19'
     # print(today)
