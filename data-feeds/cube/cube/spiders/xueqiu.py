@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
-from cube.crack.xueqiu_login import CrackXueQiu
-from cube.spiders.hdf5 import Hdf5Utils
 from scrapy.loader import ItemLoader
-from cube.items import CubeItem, OwnerItem
 from scrapy.loader.processors import Join, MapCompose, SelectJmes
 from bs4 import BeautifulSoup
 import redis
+
+from cube.config.cube_settings import *
+from cube.items import CubeItem, OwnerItem
+from cube.crack.xueqiu_login import CrackXueQiu
+from cube.spiders.hdf5 import Hdf5Utils
 
 
 class XueqiuSpider(scrapy.Spider):
@@ -20,10 +22,10 @@ class XueqiuSpider(scrapy.Spider):
     cube_discover_url = 'https://xueqiu.com/cubes/discover/rank/cube/list.json?category=14&count=20&page='
     cube_info_url = 'https://xueqiu.com/P/'
     # 调仓历史
-    cube_rebalce_url = 'https://xueqiu.com/cubes/rebalancing/history.json?count=20&page=1&cube_symbol='
+    cube_rebalance_url = 'https://xueqiu.com/cubes/rebalancing/history.json?count=20&page=1&cube_symbol='
     # 收益历史
     cube_profilt_url = 'https://xueqiu.com/cubes/nav_daily/all.json?cube_symbol='
-    r = redis.Redis(host='localhost', password='123456')
+    r = redis.Redis(host=REDIS_HOST, password=REDIS_PASSWD)
     # 是否用指定的代码爬取数据
     readSpecifySymbol = False
     # 指定的组合代码
@@ -51,7 +53,6 @@ class XueqiuSpider(scrapy.Spider):
     def __init__(self):
         crack = CrackXueQiu()
         self.login_result = crack.crack()
-        pass
 
     def start_requests(self):
         if not self.login_result:
@@ -59,8 +60,8 @@ class XueqiuSpider(scrapy.Spider):
             pass
 
         with open('tmp_data/xueqiu_cookie.json', 'r', encoding='utf-8') as f:
-            listCookies = json.loads(f.read())
-        cookie = [item["name"] + "=" + item["value"] for item in listCookies]
+            list_cookies = json.loads(f.read())
+        cookie = [item["name"] + "=" + item["value"] for item in list_cookies]
         self.cookiestr = '; '.join(item for item in cookie)
         print(f'从文件中读取的cookie: {self.cookiestr}')
         self.send_headers = {
@@ -79,8 +80,8 @@ class XueqiuSpider(scrapy.Spider):
         self.symbols = ['ZH009248']
         if self.readSpecifySymbol:
             for s in self.symbols:
-                yield scrapy.Request(f'{self.cube_profilt_url}{s}', self.parseCubeProfitList, headers=self.send_headers)
-                yield scrapy.Request(f'{self.cube_rebalce_url}{s}', self.parseCubeRebalanceList,
+                yield scrapy.Request(f'{self.cube_profilt_url}{s}', self.parse_cube_profit_list, headers=self.send_headers)
+                yield scrapy.Request(f'{self.cube_rebalance_url}{s}', self.parse_cube_rebalance_list,
                                      headers=self.send_headers, cb_kwargs=dict(symbol=s))
             pass
         else:
@@ -90,44 +91,58 @@ class XueqiuSpider(scrapy.Spider):
             finalUrl = f'{self.cube_discover_url}{currentPage}'
             yield scrapy.Request(finalUrl, headers=self.send_headers)
 
-    def parseCubeProfitList(self, response):
-        jsonresponse = json.loads(response.body_as_unicode())
-        print('type of the result is1:' + str(len(jsonresponse)))
-        symbol = jsonresponse[0]['symbol']
+    def parse_cube_profit_list(self, response):
+        """
+        解析组合列表数据，并存入h5文件
+        :param response: 请求返回的json数组
+        :return: None
+        """
+        json_response = json.loads(response.body_as_unicode())
+        print('type of the result is1:' + str(len(json_response)))
+        symbol = json_response[0]['symbol']
 
         h5name = f"cube_info_{symbol}.h5"
-        self.hdf5.save_data_via_pandas(h5Name=h5name, key="profit_list", dataList=jsonresponse[0]['list'])
+        self.hdf5.save_data_via_pandas(h5Name=h5name, key="profit_list", dataList=json_response[0]['list'])
 
-    def parseCubeRebalanceList(self, response, symbol):
-        jsonresponse = json.loads(response.body_as_unicode())
-        print('type of the result is2:' + str(len(jsonresponse)))
-        page = jsonresponse['page']
-        maxPage = jsonresponse['maxPage']
+    def parse_cube_rebalance_list(self, response, symbol):
+        """
+        解析调仓记录
+        :param response:
+        :param symbol:
+        :return:
+        """
+        json_response = json.loads(response.body_as_unicode())
+        print('type of the result is2:' + str(len(json_response)))
+        page = json_response['page']
+        max_page = json_response['maxPage']
 
         print(f'------------进行第{page}数据爬取')
 
-        if page < maxPage:
+        if page < max_page:
             page += 1
-            self.cube_rebalce_url = f"https://xueqiu.com/cubes/rebalancing/history.json?count=20&page={page}&cube_symbol={symbol}"
-            print(self.cube_rebalce_url)
-            yield scrapy.Request(self.cube_rebalce_url, self.parseCubeRebalanceList, headers=self.send_headers,
+            self.cube_rebalance_url = f"https://xueqiu.com/cubes/rebalancing/history.json?count=20&page={page}&cube_symbol={symbol}"
+            print(self.cube_rebalance_url)
+            yield scrapy.Request(self.cube_rebalance_url, self.parse_cube_rebalance_list, headers=self.send_headers,
                                  cb_kwargs=dict(symbol=symbol))
 
         h5name = f"cube_info_{symbol}.h5"
-
-        dataList = []
-        self.hdf5.save_data_via_pandas(h5Name=h5name, key="rebalance_list", dataList=jsonresponse['list'],
+        data_list = []
+        self.hdf5.save_data_via_pandas(h5Name=h5name, key="rebalance_list", dataList=json_response['list'],
                                        exclude=['rebalancing_histories'])
-        for history in jsonresponse['list']:
-            dataList += history['rebalancing_histories']
-        if len(dataList) > 0:
-            self.hdf5.save_data_via_pandas(h5Name=h5name, key="rebalancing_histories", dataList=dataList, fillna=True)
+        for history in json_response['list']:
+            data_list += history['rebalancing_histories']
+        if len(data_list) > 0:
+            self.hdf5.save_data_via_pandas(h5Name=h5name, key="rebalancing_histories", dataList=data_list, fillna=True)
 
     def parse(self, response):
-        jsonresponse = json.loads(response.body_as_unicode())
-        # yield jsonresponse
+        """
+        雪球组合发现页面请求之后对内容进行解析
+        :param response: 请求返回来的json字符串
+        :return:
+        """
+        json_response = json.loads(response.body_as_unicode())
 
-        for c in jsonresponse['list']:
+        for c in json_response['list']:
             loader = ItemLoader(item=CubeItem())
             loader.default_input_processor = MapCompose(str)
             loader.default_output_processor = Join(' ')
@@ -136,12 +151,12 @@ class XueqiuSpider(scrapy.Spider):
                 loader.add_value(field, SelectJmes(path)(c))
             item = loader.load_item()
 
-            ownerLoader = ItemLoader(item=OwnerItem())
-            ownerLoader.default_input_processor = MapCompose(str)
-            ownerLoader.default_output_processor = Join(' ')
+            ownerloader = ItemLoader(item=OwnerItem())
+            ownerloader.default_input_processor = MapCompose(str)
+            ownerloader.default_output_processor = Join(' ')
             for (field, path) in self.owner_jmes_paths.items():
-                ownerLoader.add_value(field, SelectJmes(path)(c['owner']))
-            owner = ownerLoader.load_item()
+                ownerloader.add_value(field, SelectJmes(path)(c['owner']))
+            owner = ownerloader.load_item()
 
             item['owner'] = owner
             yield item
@@ -149,66 +164,73 @@ class XueqiuSpider(scrapy.Spider):
             # 开始提取用户信息
             uid = owner['id']
             # https://stock.xueqiu.com/v5/stock/portfolio/stock/list.json?size=1000&category=3&uid=6626771620&pid=-24（创建的组合）
-            createdCubeUrl = f'https://stock.xueqiu.com/v5/stock/portfolio/stock/list.json?size=1000&category=3&uid={uid}&pid=-24'
+            created_cube_url = f'https://stock.xueqiu.com/v5/stock/portfolio/stock/list.json?size=1000&category=3&uid={uid}&pid=-24'
             #  请求用户创建的组合
             # 通过cb_kwargs的方式，给解析函数传递参数
-            yield scrapy.Request(createdCubeUrl, self.parseCubeList, headers=self.send_headers,
+            yield scrapy.Request(created_cube_url, self.parse_cube_list, headers=self.send_headers,
                                  cb_kwargs=dict(uid=uid, screen_name=owner['screen_name']))
 
             # 请求用户关注的组合，这个地方不去传递uid和screen_name信息，这种情况下，通过请求网页去解析，
             # TODO 请求网页的速度超慢，想办法优化，开启多线程？
-            followedCubeUrl = f'https://stock.xueqiu.com/v5/stock/portfolio/stock/list.json?size=1000&category=3&uid={uid}&pid=-120'
-            yield scrapy.Request(followedCubeUrl, self.parseCubeList, headers=self.send_headers)
+            followed_cube_url = f'https://stock.xueqiu.com/v5/stock/portfolio/stock/list.json?size=1000&category=3&uid={uid}&pid=-120'
+            yield scrapy.Request(followed_cube_url, self.parse_cube_list, headers=self.send_headers)
 
             # 组合信息：
             # https://xueqiu.com/cubes/quote.json?code=ZH976766,SP1034535,SP1012810,ZH1160206,ZH2003755,ZH1996976,ZH1079481,ZH1174824,ZH1079472,SP1040320
 
-        page = jsonresponse['page']
-        maxPage = jsonresponse['maxPage']
-        if (page < maxPage):
+        page = json_response['page']
+        max_page = json_response['maxPage']
+        if page < max_page:
             url = f'{self.cube_discover_url}{page + 1}'
             yield scrapy.Request(url, headers=self.send_headers)
 
-    def parseCubeList(self, response, uid=None, screen_name=None):
-        '''
+    def parse_cube_list(self, response, uid=None, screen_name=None):
+        """
         通过去查找创建的组合以及组合的基本信息
-        '''
-        jsonresponse = json.loads(response.body_as_unicode())
+        :param response:
+        :param uid:
+        :param screen_name:
+        :return:
+        """
+        json_response = json.loads(response.body_as_unicode())
 
-        stockJson = jsonresponse['data']['stocks']
+        stock_json = json_response['data']['stocks']
 
-        symbolListStr = (",".join(str(s['symbol']) for s in stockJson))
-        symbolList = symbolListStr.split(',')
+        symbol_list_str = (",".join(str(s['symbol']) for s in stock_json))
+        symbol_list = symbol_list_str.split(',')
 
         if uid is None:
-            for s in symbolList:
-                yield scrapy.Request(f'{self.cube_info_url}{s}', self.parseCubeDetailInfo, cb_kwargs=dict(symbol=s),
+            for s in symbol_list:
+                yield scrapy.Request(f'{self.cube_info_url}{s}', self.parse_cube_detail_info, cb_kwargs=dict(symbol=s),
                                      headers=self.send_headers)
         else:
-            cubeInfoUrl = 'https://xueqiu.com/cubes/quote.json?code=' + symbolListStr
-            yield scrapy.Request(cubeInfoUrl, self.parseCubeInfo, headers=self.send_headers,
-                                 cb_kwargs=dict(uid=uid, screen_name=screen_name, symbolList=symbolList))
+            cube_info_url = 'https://xueqiu.com/cubes/quote.json?code=' + symbol_list_str
+            yield scrapy.Request(cube_info_url, self.parse_cube_info, headers=self.send_headers,
+                                 cb_kwargs=dict(uid=uid, screen_name=screen_name, symbolList=symbol_list))
 
-    def parseCubeDetailInfo(self, response, symbol):
-        '''
+    def parse_cube_detail_info(self, response, symbol):
+        """
         解析组合的详细详细信息
-        '''
+        :param response:
+        :param symbol:
+        :return:
+        """
         soup = BeautifulSoup(response.text, 'html.parser')
         uid = soup.find("a", {"class": "creator"})['href'][1:]
         screen_name = soup.find("div", {"class": "name"}).text
-        symbolList = [symbol]
-        cubeInfoUrl = 'https://xueqiu.com/cubes/quote.json?code=' + symbol
-        yield scrapy.Request(cubeInfoUrl, self.parseCubeInfo, headers=self.send_headers,
-                             cb_kwargs=dict(uid=uid, screen_name=screen_name, symbolList=symbolList))
+        symbol_list = [symbol]
+        cube_info_url = 'https://xueqiu.com/cubes/quote.json?code=' + symbol
+        yield scrapy.Request(cube_info_url, self.parse_cube_info, headers=self.send_headers,
+                             cb_kwargs=dict(uid=uid, screen_name=screen_name, symbolList=symbol_list))
 
-    def parseCubeInfo(self, response, uid, screen_name, symbolList):
-        jsonresponse = json.loads(response.body_as_unicode())
+    def parse_cube_info(self, response, uid, screen_name, symbolList):
+        json_response = json.loads(response.body_as_unicode())
         for s in symbolList:
-            loader = ItemLoader(item=CubesItem())
+            loader = ItemLoader(item=CubeItem())
             loader.default_input_processor = MapCompose(str)
             loader.default_output_processor = Join(' ')
             for (field, path) in self.jmes_paths.items():
-                loader.add_value(field, SelectJmes(path)(jsonresponse[s]))
+                loader.add_value(field, SelectJmes(path)(json_response[s]))
             item = loader.load_item()
             owner = OwnerItem()
             owner['id'] = uid
