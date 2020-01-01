@@ -1,0 +1,3 @@
+# 输入自己的雪球账号和密码
+XUEQIU_ACCT = '15669761293'
+XUEQIU_PASSWD = '1234rewQ'

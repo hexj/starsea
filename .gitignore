@@ -78,3 +78,4 @@ Desktop.ini
 Session.vim
 
 .DS_Store
+**/__pycache__
