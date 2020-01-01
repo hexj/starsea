@@ -51,8 +51,9 @@ class XueqiuSpider(scrapy.Spider):
     }
 
     def __init__(self):
-        crack = CrackXueQiu()
-        self.login_result = crack.crack()
+        # crack = CrackXueQiu()
+        # self.login_result = crack.crack()
+        pass
 
     def start_requests(self):
         if not self.login_result:
@@ -76,8 +77,8 @@ class XueqiuSpider(scrapy.Spider):
         调仓历史：https://xueqiu.com/cubes/rebalancing/history.json?cube_symbol=ZH009248&count=20&page=1
 
         '''
-        self.readSpecifySymbol = True
-        self.symbols = ['ZH009248']
+        self.readSpecifySymbol = False
+        self.symbols = ['ZH009248', 'ZH696958']
         if self.readSpecifySymbol:
             for s in self.symbols:
                 yield scrapy.Request(f'{self.cube_profilt_url}{s}', self.parse_cube_profit_list, headers=self.send_headers)
@@ -87,9 +88,9 @@ class XueqiuSpider(scrapy.Spider):
         else:
             # print(f'headers的内容是：{send_headers}')
             # print({cookiestr})
-            currentPage = 1
-            finalUrl = f'{self.cube_discover_url}{currentPage}'
-            yield scrapy.Request(finalUrl, headers=self.send_headers)
+            current_page = 1
+            final_url = f'{self.cube_discover_url}{current_page}'
+            yield scrapy.Request(final_url, headers=self.send_headers)
 
     def parse_cube_profit_list(self, response):
         """
@@ -97,12 +98,13 @@ class XueqiuSpider(scrapy.Spider):
         :param response: 请求返回的json数组
         :return: None
         """
-        json_response = json.loads(response.body_as_unicode())
-        print('type of the result is1:' + str(len(json_response)))
-        symbol = json_response[0]['symbol']
+        if response.status == 200:
+            json_response = json.loads(response.body_as_unicode())
+            print('type of the result is1:' + str(len(json_response)))
+            symbol = json_response[0]['symbol']
 
-        h5name = f"cube_info_{symbol}.h5"
-        self.hdf5.save_data_via_pandas(h5Name=h5name, key="profit_list", dataList=json_response[0]['list'])
+            h5name = f"cube_info_{symbol}.h5"
+            self.hdf5.save_data_via_pandas(h5Name=h5name, key="profit_list", dataList=json_response[0]['list'])
 
     def parse_cube_rebalance_list(self, response, symbol):
         """
@@ -111,27 +113,29 @@ class XueqiuSpider(scrapy.Spider):
         :param symbol:
         :return:
         """
-        json_response = json.loads(response.body_as_unicode())
-        print('type of the result is2:' + str(len(json_response)))
-        page = json_response['page']
-        max_page = json_response['maxPage']
-
-        print(f'------------进行第{page}数据爬取')
-
-        if page < max_page:
-            page += 1
-            self.cube_rebalance_url = f"https://xueqiu.com/cubes/rebalancing/history.json?count=20&page={page}&cube_symbol={symbol}"
-            print(self.cube_rebalance_url)
-            yield scrapy.Request(self.cube_rebalance_url, self.parse_cube_rebalance_list, headers=self.send_headers,
-                                 cb_kwargs=dict(symbol=symbol))
-
         h5name = f"cube_info_{symbol}.h5"
         data_list = []
-        self.hdf5.save_data_via_pandas(h5Name=h5name, key="rebalance_list", dataList=json_response['list'],
-                                       exclude=['rebalancing_histories'])
-        for history in json_response['list']:
-            data_list += history['rebalancing_histories']
-        if len(data_list) > 0:
+        if response.status == 200:
+            json_response = json.loads(response.body_as_unicode())
+            print(f'the raw response is {response}')
+            print(f'the json response is {json_response}')
+            page = json_response['page']
+            max_page = json_response['maxPage']
+
+            print(f'------------进行第{page}数据爬取')
+
+            if page < max_page:
+                page += 1
+                self.cube_rebalance_url = f"https://xueqiu.com/cubes/rebalancing/history.json?count=20&page={page}&cube_symbol={symbol}"
+                print(self.cube_rebalance_url)
+                yield scrapy.Request(self.cube_rebalance_url, self.parse_cube_rebalance_list, headers=self.send_headers,
+                                     cb_kwargs=dict(symbol=symbol), meta={"handle_httpstatus_all": True})
+
+                self.hdf5.save_data_via_pandas(h5Name=h5name, key="rebalance_list", dataList=json_response['list'],
+                                               exclude=['rebalancing_histories'])
+                for history in json_response['list']:
+                    data_list += history['rebalancing_histories']
+        if data_list and len(data_list) > 0:
             self.hdf5.save_data_via_pandas(h5Name=h5name, key="rebalancing_histories", dataList=data_list, fillna=True)
 
     def parse(self, response):
