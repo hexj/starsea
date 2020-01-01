@@ -5,6 +5,8 @@ from scrapy.loader import ItemLoader
 from scrapy.loader.processors import Join, MapCompose, SelectJmes
 from bs4 import BeautifulSoup
 import redis
+import os
+import time
 
 from cube.config.cube_settings import *
 from cube.items import CubeItem, OwnerItem
@@ -51,19 +53,42 @@ class XueqiuSpider(scrapy.Spider):
     }
 
     def __init__(self):
+        pass
         # crack = CrackXueQiu()
         # self.login_result = crack.crack()
-        pass
 
     def start_requests(self):
-        if not self.login_result:
-            print('自动登录不成功，停止')
-            pass
+        # 如果本地cookie json文件不存在, 那么先进行自动化登录
+        if not os.path.exists('tmp_data/xueqiu_cookie.json'):
+            crack = CrackXueQiu()
+            login_result = crack.crack()
+            if not login_result:
+                print('自动登录不成功，停止')
+                pass
 
         with open('tmp_data/xueqiu_cookie.json', 'r', encoding='utf-8') as f:
             list_cookies = json.loads(f.read())
-        cookie = [item["name"] + "=" + item["value"] for item in list_cookies]
-        self.cookiestr = '; '.join(item for item in cookie)
+
+        expired = False
+        # 检测token是否过期，如果过期，那么进行重新登录。
+        for item in list_cookies:
+            if item.get('expiry') and ('token' in item['name']):
+                if time.time() > item.get('expiry'):
+                    expired = True
+                    break
+
+        if expired:
+            crack = CrackXueQiu()
+            login_result = crack.crack()
+            if not login_result:
+                print('自动登录不成功，停止')
+                pass
+
+            with open('tmp_data/xueqiu_cookie.json', 'r', encoding='utf-8') as f:
+                list_cookies = json.loads(f.read())
+
+        cookies = [item["name"] + "=" + item["value"] for item in list_cookies]
+        self.cookiestr = '; '.join(item for item in cookies)
         print(f'从文件中读取的cookie: {self.cookiestr}')
         self.send_headers = {
             'cookie': self.cookiestr,
