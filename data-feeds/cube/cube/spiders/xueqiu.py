@@ -19,17 +19,17 @@ class XueqiuSpider(scrapy.Spider):
     allowed_domains = ['xueqiu.com']
     start_urls = ['http://xueqiu.com/']
     login_result = True
-    cookiestr = ''
+    cookie_str = ''
     send_headers = {}
     cube_discover_url = 'https://xueqiu.com/cubes/discover/rank/cube/list.json?category=14&count=20&page='
     cube_info_url = 'https://xueqiu.com/P/'
     # 调仓历史
     cube_rebalance_url = 'https://xueqiu.com/cubes/rebalancing/history.json?count=20&page=1&cube_symbol='
     # 收益历史
-    cube_profilt_url = 'https://xueqiu.com/cubes/nav_daily/all.json?cube_symbol='
+    cube_profit_url = 'https://xueqiu.com/cubes/nav_daily/all.json?cube_symbol='
     r = redis.Redis(host=REDIS_HOST, password=REDIS_PASSWD)
     # 是否用指定的代码爬取数据
-    readSpecifySymbol = False
+    read_specify_symbol = True
     # 指定的组合代码
     symbols = ['ZH009248']
     hdf5 = Hdf5Utils()
@@ -88,10 +88,10 @@ class XueqiuSpider(scrapy.Spider):
                 list_cookies = json.loads(f.read())
 
         cookies = [item["name"] + "=" + item["value"] for item in list_cookies]
-        self.cookiestr = '; '.join(item for item in cookies)
-        print(f'从文件中读取的cookie: {self.cookiestr}')
+        self.cookie_str = '; '.join(item for item in cookies)
+        print(f'从文件中读取的cookie: {self.cookie_str}')
         self.send_headers = {
-            'cookie': self.cookiestr,
+            'cookie': self.cookie_str,
             # 'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36'
         }
 
@@ -102,11 +102,9 @@ class XueqiuSpider(scrapy.Spider):
         调仓历史：https://xueqiu.com/cubes/rebalancing/history.json?cube_symbol=ZH009248&count=20&page=1
 
         '''
-        self.readSpecifySymbol = False
-        self.symbols = ['ZH009248', 'ZH696958']
-        if self.readSpecifySymbol:
+        if self.read_specify_symbol:
             for s in self.symbols:
-                yield scrapy.Request(f'{self.cube_profilt_url}{s}', self.parse_cube_profit_list, headers=self.send_headers)
+                yield scrapy.Request(f'{self.cube_profit_url}{s}', self.parse_cube_profit_list, headers=self.send_headers)
                 yield scrapy.Request(f'{self.cube_rebalance_url}{s}', self.parse_cube_rebalance_list,
                                      headers=self.send_headers, cb_kwargs=dict(symbol=s))
             pass
@@ -119,7 +117,7 @@ class XueqiuSpider(scrapy.Spider):
 
     def parse_cube_profit_list(self, response):
         """
-        解析组合列表数据，并存入h5文件
+        解析组合数据数据，并存入h5文件
         :param response: 请求返回的json数组
         :return: None
         """
@@ -180,12 +178,12 @@ class XueqiuSpider(scrapy.Spider):
                 loader.add_value(field, SelectJmes(path)(c))
             item = loader.load_item()
 
-            ownerloader = ItemLoader(item=OwnerItem())
-            ownerloader.default_input_processor = MapCompose(str)
-            ownerloader.default_output_processor = Join(' ')
+            owner_loader = ItemLoader(item=OwnerItem())
+            owner_loader.default_input_processor = MapCompose(str)
+            owner_loader.default_output_processor = Join(' ')
             for (field, path) in self.owner_jmes_paths.items():
-                ownerloader.add_value(field, SelectJmes(path)(c['owner']))
-            owner = ownerloader.load_item()
+                owner_loader.add_value(field, SelectJmes(path)(c['owner']))
+            owner = owner_loader.load_item()
 
             item['owner'] = owner
             yield item
@@ -235,7 +233,7 @@ class XueqiuSpider(scrapy.Spider):
         else:
             cube_info_url = 'https://xueqiu.com/cubes/quote.json?code=' + symbol_list_str
             yield scrapy.Request(cube_info_url, self.parse_cube_info, headers=self.send_headers,
-                                 cb_kwargs=dict(uid=uid, screen_name=screen_name, symbolList=symbol_list))
+                                 cb_kwargs=dict(uid=uid, screen_name=screen_name, symbol_list=symbol_list))
 
     def parse_cube_detail_info(self, response, symbol):
         """
@@ -250,11 +248,11 @@ class XueqiuSpider(scrapy.Spider):
         symbol_list = [symbol]
         cube_info_url = 'https://xueqiu.com/cubes/quote.json?code=' + symbol
         yield scrapy.Request(cube_info_url, self.parse_cube_info, headers=self.send_headers,
-                             cb_kwargs=dict(uid=uid, screen_name=screen_name, symbolList=symbol_list))
+                             cb_kwargs=dict(uid=uid, screen_name=screen_name, symbol_list=symbol_list))
 
-    def parse_cube_info(self, response, uid, screen_name, symbolList):
+    def parse_cube_info(self, response, uid, screen_name, symbol_list):
         json_response = json.loads(response.body_as_unicode())
-        for s in symbolList:
+        for s in symbol_list:
             loader = ItemLoader(item=CubeItem())
             loader.default_input_processor = MapCompose(str)
             loader.default_output_processor = Join(' ')

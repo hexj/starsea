@@ -2,6 +2,7 @@
 # 以及jquery的实现 https://github.com/gdsmith/jquery.easing/blob/master/jquery.easing.js
 import numpy as np
 
+
 def ease_out_quad(x):
     return 1 - (1 - x) * (1 - x)
 
