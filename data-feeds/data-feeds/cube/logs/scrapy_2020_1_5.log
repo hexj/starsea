@@ -1,0 +1,27 @@
+2020-01-05 17:09:42 [scrapy.core.scraper] ERROR: Spider error processing <GET https://xueqiu.com/cubes/discover/rank/cube/list.json?category=14&count=20&page=1> (referer: None)
+Traceback (most recent call last):
+  File "/Users/weibolei/.local/share/virtualenvs/cube-c_ZFnlhH/lib/python3.7/site-packages/scrapy/utils/defer.py", line 102, in iter_errback
+    yield next(it)
+  File "/Users/weibolei/.local/share/virtualenvs/cube-c_ZFnlhH/lib/python3.7/site-packages/scrapy/core/spidermw.py", line 84, in evaluate_iterable
+    for r in iterable:
+  File "/Users/weibolei/.local/share/virtualenvs/cube-c_ZFnlhH/lib/python3.7/site-packages/scrapy/spidermiddlewares/offsite.py", line 29, in process_spider_output
+    for x in result:
+  File "/Users/weibolei/.local/share/virtualenvs/cube-c_ZFnlhH/lib/python3.7/site-packages/scrapy/core/spidermw.py", line 84, in evaluate_iterable
+    for r in iterable:
+  File "/Users/weibolei/.local/share/virtualenvs/cube-c_ZFnlhH/lib/python3.7/site-packages/scrapy/spidermiddlewares/referer.py", line 339, in <genexpr>
+    return (_set_referer(r) for r in result or ())
+  File "/Users/weibolei/.local/share/virtualenvs/cube-c_ZFnlhH/lib/python3.7/site-packages/scrapy/core/spidermw.py", line 84, in evaluate_iterable
+    for r in iterable:
+  File "/Users/weibolei/.local/share/virtualenvs/cube-c_ZFnlhH/lib/python3.7/site-packages/scrapy/spidermiddlewares/urllength.py", line 37, in <genexpr>
+    return (r for r in result or () if _filter(r))
+  File "/Users/weibolei/.local/share/virtualenvs/cube-c_ZFnlhH/lib/python3.7/site-packages/scrapy/core/spidermw.py", line 84, in evaluate_iterable
+    for r in iterable:
+  File "/Users/weibolei/.local/share/virtualenvs/cube-c_ZFnlhH/lib/python3.7/site-packages/scrapy/spidermiddlewares/depth.py", line 58, in <genexpr>
+    return (r for r in result or () if _filter(r))
+  File "/Users/weibolei/Dev/quant-workspace/starsea_own/data-feeds/cube/cube/spiders/xueqiu.py", line 136, in parse
+    wrapper_item = CubeItemWrapper.from_dict(c)
+  File "/Users/weibolei/Dev/quant-workspace/starsea_own/data-feeds/cube/cube/models/cube_item_wrapper.py", line 66, in from_dict
+    closed_at = from_int(obj.get("closed_at"))
+  File "/Users/weibolei/Dev/quant-workspace/starsea_own/data-feeds/cube/cube/models/cube_item_wrapper.py", line 26, in from_int
+    assert isinstance(x, int) and not isinstance(x, bool)
+AssertionError
