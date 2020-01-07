@@ -21,5 +21,16 @@ url = "https://pypi.doubanio.com/simple"
 verify_ssl = true
 name = "douban"
 ```
+
+### 生成requirements.txt文件
+```
+$ pipenv lock -r
+```
+
+#### 生成dev-packages的requirements.txt文件
+```
+$ pipenv lock -r -d
+```
+
 更多关于pipenv的使用，可以参考[这里](https://stornado.github.io/2019/01/23/pipenv-in-pratical/)
 

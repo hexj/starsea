@@ -93,7 +93,7 @@ ITEM_PIPELINES = {
 
 import datetime
 
-LOG_LEVEL = 'WARN'
+LOG_LEVEL = 'DEBUG'
 to_day = datetime.datetime.now()
 log_file_path = 'logs/scrapy_{}_{}_{}.log'.format(to_day.year, to_day.month, to_day.day)
 # LOG_FILE = log_file_path

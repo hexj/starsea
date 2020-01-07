@@ -7,11 +7,13 @@ from bs4 import BeautifulSoup
 import redis
 import os
 import time
+import logging
 
 from cube.config.cube_settings import *
 from cube.items import CubeItem, OwnerItem, CubeProfitItem, CubeRebalanceItem, CubeRebalanceHistoryItem
 from cube.crack.xueqiu_login import CrackXueQiu
 from cube.spiders.hdf5 import Hdf5Utils
+from cube.helper.string_helper import byte_to_str
 
 from cube.models.cube_item_wrapper import CubeItemWrapper
 from cube.models.cube_profit_wrapper import cube_profit_wrapper_from_dict
@@ -20,13 +22,14 @@ from cube.models.cube_rebalancing_history_item_wrapper import cube_rebalance_his
 
 
 class XueqiuSpider(scrapy.Spider):
+    handle_httpstatus_list = [400]
     name = 'xueqiu'
     allowed_domains = ['xueqiu.com']
     start_urls = ['http://xueqiu.com/']
     login_result = True
     cookie_str = ''
     send_headers = {}
-    cube_discover_url = 'https://xueqiu.com/cubes/discover/rank/cube/list.json?category=14&count=4&page='
+    cube_discover_url = 'https://xueqiu.com/cubes/discover/rank/cube/list.json?category=14&count=10&page='
     cube_info_url = 'https://xueqiu.com/P/'
     # 调仓历史
     cube_rebalance_url = 'https://xueqiu.com/cubes/rebalancing/history.json?count=20&page=1&cube_symbol='
@@ -38,7 +41,8 @@ class XueqiuSpider(scrapy.Spider):
     # 是否用指定的代码爬取数据
     read_specify_symbol = False
     # 指定的组合代码
-    symbols = ['ZH007441']
+    symbols = ['ZH1244732', 'ZH009248', 'ZH1307218']
+    logger = logging.getLogger(__name__)
     hdf5 = Hdf5Utils()
     # dictionary to map UserItem fields to Jmes query paths
     jmes_paths = {
@@ -101,12 +105,13 @@ class XueqiuSpider(scrapy.Spider):
         profit_list:
         所有的收益：https://xueqiu.com/cubes/nav_daily/all.json?cube_symbol=ZH1067693
         rebalance_list:
-        调仓历史：https://xueqiu.com/cubes/rebalancing/history.json?cube_symbol=ZH009248&count=20&page=1
+        调仓历史：https://xueqiu.com/cubes/rebalancing/history.json?cube_symbol=ZH009248&count=20&page=
 
         '''
         if self.read_specify_symbol:
             for s in self.symbols:
-                profit_since_time = self.r.get(f'{s}_profit_since_time')
+                profit_since_time = byte_to_str(self.r.get(f'{s}_profit_since_time'))
+                self.logger.warning(f'redis---> get the profit_since_time: {profit_since_time}')
                 params = ''
                 if profit_since_time:
                     params = f'&since={profit_since_time}&until={int(time.time()) * 1000}'
@@ -152,7 +157,8 @@ class XueqiuSpider(scrapy.Spider):
             owner = owner_loader.load_item()
             yield item
 
-            profit_since_time = self.r.get(f'{item["symbol"]}_profit_since_time')
+            profit_since_time = byte_to_str(self.r.get(f'{item["symbol"]}_profit_since_time'))
+            self.logger.warning(f'redis---> get the profit_since_time: {profit_since_time}')
             params = ''
             if profit_since_time:
                 params = f'&since={profit_since_time}&until={int(time.time()) * 1000}'
@@ -184,7 +190,6 @@ class XueqiuSpider(scrapy.Spider):
 
         page = json_response['page']
         max_page = json_response['maxPage']
-        max_page = 1
         if page < max_page:
             url = f'{self.cube_discover_url}{page + 1}'
             yield scrapy.Request(url, headers=self.send_headers)
@@ -223,7 +228,9 @@ class XueqiuSpider(scrapy.Spider):
             rebalance_item_wrapper = cube_rebalance_item_wrapper_from_dict(json_response['list'])
             rebalance_items['data_list'] = rebalance_item_wrapper
 
-            local_latest_rebalacing = self.r.get(f'{symbol}_saved_latest_rebalancing')
+            local_latest_rebalacing = byte_to_str(self.r.get(f'{symbol}_saved_latest_rebalancing'))
+            self.logger.warning(f'redis---> get the local_latest_rebalancing: {local_latest_rebalacing}')
+
 
             # yield rebalance_items
             for r in json_response['list']:
@@ -245,6 +252,9 @@ class XueqiuSpider(scrapy.Spider):
                 self.cube_rebalance_url = f"https://xueqiu.com/cubes/rebalancing/history.json?count=20&page={page}&cube_symbol={symbol}"
                 yield scrapy.Request(self.cube_rebalance_url, self.parse_cube_rebalance_list, headers=self.send_headers,
                                      cb_kwargs=dict(symbol=symbol), meta={"handle_httpstatus_all": True})
+        else:
+            self.logger.warning('request get 400.')
+            pass
 
         if data_list and len(data_list) > 0:
             rebalance_history_items = CubeRebalanceHistoryItem()
