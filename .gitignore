@@ -78,3 +78,5 @@ Desktop.ini
 Session.vim
 
 .DS_Store
+**/__pycache__
+**/*.log

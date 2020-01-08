@@ -1,0 +1,60 @@
+// CubeItemWrapper
+[{
+"symbol": "ZH009248",
+"market": "cn",
+"name": "Quantumfund",
+"net_value": 3.6111,
+"closed_at": 1574600533585
+}]
+
+// ProfitItemWrapper
+[{
+"time": 1416844800000,
+"date": "2014-11-25",
+"value": 1.0197,
+"percent": 1.97
+}]
+
+
+// CubeRebalanceItemWrapper
+[{
+		"rebalance_id": 45844389,
+		"status": "success",
+		"cube_id": 641,
+		"prev_bebalancing_id": 45802194,
+		"created_at": 1539840767653,
+		"updated_at": 1539840767653,
+		"cash_value": 2.0E-8,
+		"cash": 0.0,
+		"holdings": null,
+		"comment": "",
+		"diff": 0.0,
+		"new_buy_count": 0
+	}
+]
+
+// CubeRebalancingHistoryItemWrapper
+[{
+	"id": 230383665,
+	"rebalancing_id": 45801724,
+	"stock_id": 1000730,
+	"stock_name": "ST中天",
+	"stock_symbol": "SH600856",
+	"volume": 0.00402108,
+	"price": 4.92,
+	"net_value": 0.0198,
+	"weight": 1.05,
+	"target_weight": 1.02,
+	"prev_weight": 100.01,
+	"prev_target_weight": 100.01,
+	"prev_weight_adjusted": 100.01,
+	"prev_volume": 0.40210852,
+	"prev_price": 4.89,
+	"prev_net_value": 1.96631066,
+	"proactive": true,
+	"created_at": 1539740208526,
+	"updated_at": 1539740208526,
+	"target_volume": 0.00402108,
+	"prev_target_volume": 0.40210852
+}]
+
