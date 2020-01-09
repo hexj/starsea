@@ -1,0 +1,26 @@
+version: '3'
+services:
+  data_feeds:
+    container_name: 'data_feeds_cube_xueqiu'
+    build: ./cube/
+    working_dir: /data-feeds/cube
+    volumes:
+      - ./cube:/data-feeds/cube
+    depends_on:
+      - redis
+    command:
+      - /bin/bash
+      - -c
+      - |
+        chromedriver --version
+        google-chrome --version
+        python3.7 main.py
+
+  redis:
+    container_name: v-redis
+    image: redis:alpine
+    command: redis-server --requirepass 123456
+    volumes:
+      - ./cube/redis_data:/data
+    ports:
+      - 6379:6379

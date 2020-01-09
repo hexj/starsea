@@ -28,8 +28,8 @@ class CrackXueQiu(object):
         self.chrome_options = webdriver.ChromeOptions()
         self.chrome_options.add_argument('--window-size=1920,1080')
         self.chrome_options.add_argument('--start-maximized')
-        # self.chrome_options.add_argument('--headless')
-        # self.chrome_options.add_argument('--disable-gpu')
+        self.chrome_options.add_argument('--headless')
+        self.chrome_options.add_argument('--disable-gpu')
         self.chrome_options.add_experimental_option("detach", True)
         self.browser = webdriver.Chrome(executable_path='chromedriver', chrome_options=self.chrome_options)
         self.wait = WebDriverWait(self.browser, 20)
@@ -49,7 +49,7 @@ class CrackXueQiu(object):
         user_name.send_keys(XUEQIU_ACCT)
         password.send_keys(XUEQIU_PASSWD)
         real_login_btn = self.wait.until(
-            EC.element_to_be_clickable((By.CLASS_NAME, 'Loginmodal_modal__login__btn_uk7')))
+            EC.element_to_be_clickable((By.CLASS_NAME, 'Loginmodal_btn-active_2oj')))
         real_login_btn.click()
 
     def save_captcha_img(self, img_name, class_name):
