@@ -7,31 +7,42 @@ from bs4 import BeautifulSoup
 import redis
 import os
 import time
+import logging
 
 from cube.config.cube_settings import *
-from cube.items import CubeItem, OwnerItem
+from cube.items import CubeItem, OwnerItem, CubeProfitItem, CubeRebalanceItem, CubeRebalanceHistoryItem
 from cube.crack.xueqiu_login import CrackXueQiu
 from cube.spiders.hdf5 import Hdf5Utils
+from cube.helper.string_helper import byte_to_str
+
+from cube.models.cube_item_wrapper import CubeItemWrapper
+from cube.models.cube_profit_wrapper import cube_profit_wrapper_from_dict
+from cube.models.cube_rebalancing_item_wrapper import cube_rebalance_item_wrapper_from_dict
+from cube.models.cube_rebalancing_history_item_wrapper import cube_rebalance_history_item_wrapper_from_dict
 
 
 class XueqiuSpider(scrapy.Spider):
+    handle_httpstatus_list = [400]
     name = 'xueqiu'
     allowed_domains = ['xueqiu.com']
     start_urls = ['http://xueqiu.com/']
     login_result = True
     cookie_str = ''
     send_headers = {}
-    cube_discover_url = 'https://xueqiu.com/cubes/discover/rank/cube/list.json?category=14&count=20&page='
+    cube_discover_url = 'https://xueqiu.com/cubes/discover/rank/cube/list.json?category=14&count=10&page='
     cube_info_url = 'https://xueqiu.com/P/'
     # 调仓历史
     cube_rebalance_url = 'https://xueqiu.com/cubes/rebalancing/history.json?count=20&page=1&cube_symbol='
     # 收益历史
+    # https://xueqiu.com/cubes/nav_daily/all.json?cube_symbol=ZH009248&&since=1546689578000&until=1578225578000
+    # 这个接口的since和util必须要成对出现，否则无效
     cube_profit_url = 'https://xueqiu.com/cubes/nav_daily/all.json?cube_symbol='
     r = redis.Redis(host=REDIS_HOST, password=REDIS_PASSWD)
     # 是否用指定的代码爬取数据
-    read_specify_symbol = True
+    read_specify_symbol = False
     # 指定的组合代码
-    symbols = ['ZH009248']
+    symbols = ['ZH1244732', 'ZH009248', 'ZH1307218']
+    logger = logging.getLogger(__name__)
     hdf5 = Hdf5Utils()
     # dictionary to map UserItem fields to Jmes query paths
     jmes_paths = {
@@ -39,12 +50,7 @@ class XueqiuSpider(scrapy.Spider):
         'symbol': 'symbol',
         'market': 'market',
         'net_value': 'net_value',
-        'daily_gain': 'daily_gain',
-        'monthly_gain': 'monthly_gain',
-        'total_gain': 'total_gain',
-        'annualized_gain': 'annualized_gain',
         'closed_at': 'closed_at',  # 这个字段如果为空，则表示未关闭状态
-        'owner': 'owner'
     }
 
     owner_jmes_paths = {
@@ -99,67 +105,26 @@ class XueqiuSpider(scrapy.Spider):
         profit_list:
         所有的收益：https://xueqiu.com/cubes/nav_daily/all.json?cube_symbol=ZH1067693
         rebalance_list:
-        调仓历史：https://xueqiu.com/cubes/rebalancing/history.json?cube_symbol=ZH009248&count=20&page=1
+        调仓历史：https://xueqiu.com/cubes/rebalancing/history.json?cube_symbol=ZH009248&count=20&page=
 
         '''
         if self.read_specify_symbol:
             for s in self.symbols:
-                yield scrapy.Request(f'{self.cube_profit_url}{s}', self.parse_cube_profit_list, headers=self.send_headers)
+                profit_since_time = byte_to_str(self.r.get(f'{s}_profit_since_time'))
+                self.logger.warning(f'redis---> get the profit_since_time: {profit_since_time}')
+                params = ''
+                if profit_since_time:
+                    params = f'&since={profit_since_time}&until={int(time.time()) * 1000}'
+                yield scrapy.Request(f'{self.cube_profit_url}{s}{params}', self.parse_cube_profit_list,
+                                     headers=self.send_headers)
                 yield scrapy.Request(f'{self.cube_rebalance_url}{s}', self.parse_cube_rebalance_list,
                                      headers=self.send_headers, cb_kwargs=dict(symbol=s))
-            pass
         else:
             # print(f'headers的内容是：{send_headers}')
             # print({cookiestr})
             current_page = 1
             final_url = f'{self.cube_discover_url}{current_page}'
             yield scrapy.Request(final_url, headers=self.send_headers)
-
-    def parse_cube_profit_list(self, response):
-        """
-        解析组合数据数据，并存入h5文件
-        :param response: 请求返回的json数组
-        :return: None
-        """
-        if response.status == 200:
-            json_response = json.loads(response.body_as_unicode())
-            print('type of the result is1:' + str(len(json_response)))
-            symbol = json_response[0]['symbol']
-
-            h5name = f"cube_info_{symbol}.h5"
-            self.hdf5.save_data_via_pandas(h5Name=h5name, key="profit_list", dataList=json_response[0]['list'])
-
-    def parse_cube_rebalance_list(self, response, symbol):
-        """
-        解析调仓记录
-        :param response:
-        :param symbol:
-        :return:
-        """
-        h5name = f"cube_info_{symbol}.h5"
-        data_list = []
-        if response.status == 200:
-            json_response = json.loads(response.body_as_unicode())
-            print(f'the raw response is {response}')
-            print(f'the json response is {json_response}')
-            page = json_response['page']
-            max_page = json_response['maxPage']
-
-            print(f'------------进行第{page}数据爬取')
-
-            if page < max_page:
-                page += 1
-                self.cube_rebalance_url = f"https://xueqiu.com/cubes/rebalancing/history.json?count=20&page={page}&cube_symbol={symbol}"
-                print(self.cube_rebalance_url)
-                yield scrapy.Request(self.cube_rebalance_url, self.parse_cube_rebalance_list, headers=self.send_headers,
-                                     cb_kwargs=dict(symbol=symbol), meta={"handle_httpstatus_all": True})
-
-                self.hdf5.save_data_via_pandas(h5Name=h5name, key="rebalance_list", dataList=json_response['list'],
-                                               exclude=['rebalancing_histories'])
-                for history in json_response['list']:
-                    data_list += history['rebalancing_histories']
-        if data_list and len(data_list) > 0:
-            self.hdf5.save_data_via_pandas(h5Name=h5name, key="rebalancing_histories", dataList=data_list, fillna=True)
 
     def parse(self, response):
         """
@@ -170,13 +135,19 @@ class XueqiuSpider(scrapy.Spider):
         json_response = json.loads(response.body_as_unicode())
 
         for c in json_response['list']:
-            loader = ItemLoader(item=CubeItem())
-            loader.default_input_processor = MapCompose(str)
-            loader.default_output_processor = Join(' ')
-
-            for (field, path) in self.jmes_paths.items():
-                loader.add_value(field, SelectJmes(path)(c))
-            item = loader.load_item()
+            if c['symbol'] == 'ZH696958':
+                c['close_at'] = "1574600533585"
+            # loader = ItemLoader(item=CubeItem())
+            # loader.default_input_processor = MapCompose(str)
+            # loader.default_output_processor = Join(' ')
+            #
+            # for (field, path) in self.jmes_paths.items():
+            #     loader.add_value(field, SelectJmes(path)(c))
+            # item = loader.load_item()
+            wrapper_item = CubeItemWrapper.from_dict(c)
+            item = CubeItem()
+            item['symbol'] = c['symbol']
+            item['data_item'] = wrapper_item
 
             owner_loader = ItemLoader(item=OwnerItem())
             owner_loader.default_input_processor = MapCompose(str)
@@ -184,10 +155,21 @@ class XueqiuSpider(scrapy.Spider):
             for (field, path) in self.owner_jmes_paths.items():
                 owner_loader.add_value(field, SelectJmes(path)(c['owner']))
             owner = owner_loader.load_item()
-
-            item['owner'] = owner
             yield item
 
+            profit_since_time = byte_to_str(self.r.get(f'{item["symbol"]}_profit_since_time'))
+            self.logger.warning(f'redis---> get the profit_since_time: {profit_since_time}')
+            params = ''
+            if profit_since_time:
+                params = f'&since={profit_since_time}&until={int(time.time()) * 1000}'
+            # 请求收益列表
+            yield scrapy.Request(f'{self.cube_profit_url}{item["symbol"]}{params}', self.parse_cube_profit_list,
+                                 headers=self.send_headers)
+            # 请求调仓记录
+            yield scrapy.Request(f'{self.cube_rebalance_url}{item["symbol"]}', self.parse_cube_rebalance_list,
+                                 headers=self.send_headers, cb_kwargs=dict(symbol=item["symbol"]))
+
+            """ DELETEME
             # 开始提取用户信息
             uid = owner['id']
             # https://stock.xueqiu.com/v5/stock/portfolio/stock/list.json?size=1000&category=3&uid=6626771620&pid=-24（创建的组合）
@@ -204,12 +186,82 @@ class XueqiuSpider(scrapy.Spider):
 
             # 组合信息：
             # https://xueqiu.com/cubes/quote.json?code=ZH976766,SP1034535,SP1012810,ZH1160206,ZH2003755,ZH1996976,ZH1079481,ZH1174824,ZH1079472,SP1040320
+            """
 
         page = json_response['page']
         max_page = json_response['maxPage']
         if page < max_page:
             url = f'{self.cube_discover_url}{page + 1}'
             yield scrapy.Request(url, headers=self.send_headers)
+
+    def parse_cube_profit_list(self, response):
+        """
+        解析组合数据数据，并存入h5文件
+        :param response: 请求返回的json数组
+        :return: None
+        """
+        if response.status == 200:
+            json_response = json.loads(response.body_as_unicode())
+            symbol = json_response[0]['symbol']
+            cube_profit_item = CubeProfitItem()
+            cube_profit_item['symbol'] = symbol
+            cube_profit_item_wrapper = cube_profit_wrapper_from_dict(json_response[0]['list'])
+            cube_profit_item['data_list'] = cube_profit_item_wrapper
+            self.r.set(f'{symbol}_profit_since_time',
+                       cube_profit_item_wrapper[len(cube_profit_item_wrapper) - 1].time)
+            yield cube_profit_item
+
+    def parse_cube_rebalance_list(self, response, symbol):
+        """
+        解析调仓记录
+        :param response:
+        :param symbol:
+        :return:
+        """
+        data_list = []
+        do_not_repeat = False
+        if response.status == 200:
+            json_response = json.loads(response.body_as_unicode())
+
+            rebalance_items = CubeRebalanceItem()
+            rebalance_items['symbol'] = symbol
+            rebalance_item_wrapper = cube_rebalance_item_wrapper_from_dict(json_response['list'])
+            rebalance_items['data_list'] = rebalance_item_wrapper
+
+            local_latest_rebalacing = byte_to_str(self.r.get(f'{symbol}_saved_latest_rebalancing'))
+            self.logger.warning(f'redis---> get the local_latest_rebalancing: {local_latest_rebalacing}')
+
+
+            # yield rebalance_items
+            for r in json_response['list']:
+                if local_latest_rebalacing:
+                    if int(local_latest_rebalacing) == int(r['id']):
+                        do_not_repeat = True
+                        break
+                data_list += r['rebalancing_histories']
+
+            page = json_response['page']
+
+            if page == 1:
+                self.r.set(f'{symbol}_saved_latest_rebalancing',
+                           rebalance_item_wrapper[0].rebalance_id)
+            max_page = json_response['maxPage']
+            print(f'{symbol}->进行第{page}页调仓数据爬取')
+            if page < max_page and not do_not_repeat:
+                page += 1
+                self.cube_rebalance_url = f"https://xueqiu.com/cubes/rebalancing/history.json?count=20&page={page}&cube_symbol={symbol}"
+                yield scrapy.Request(self.cube_rebalance_url, self.parse_cube_rebalance_list, headers=self.send_headers,
+                                     cb_kwargs=dict(symbol=symbol), meta={"handle_httpstatus_all": True})
+        else:
+            self.logger.warning('request get 400.')
+            pass
+
+        if data_list and len(data_list) > 0:
+            rebalance_history_items = CubeRebalanceHistoryItem()
+            rebalance_history_items['symbol'] = symbol
+            rebalance_history_wrapper_item = cube_rebalance_history_item_wrapper_from_dict(data_list)
+            rebalance_history_items['data_list'] = rebalance_history_wrapper_item
+            yield rebalance_history_items
 
     def parse_cube_list(self, response, uid=None, screen_name=None):
         """
@@ -233,7 +285,7 @@ class XueqiuSpider(scrapy.Spider):
         else:
             cube_info_url = 'https://xueqiu.com/cubes/quote.json?code=' + symbol_list_str
             yield scrapy.Request(cube_info_url, self.parse_cube_info, headers=self.send_headers,
-                                 cb_kwargs=dict(uid=uid, screen_name=screen_name, symbol_list=symbol_list))
+                                 cb_kwargs=dict(symbol_list=symbol_list))
 
     def parse_cube_detail_info(self, response, symbol):
         """
@@ -248,9 +300,9 @@ class XueqiuSpider(scrapy.Spider):
         symbol_list = [symbol]
         cube_info_url = 'https://xueqiu.com/cubes/quote.json?code=' + symbol
         yield scrapy.Request(cube_info_url, self.parse_cube_info, headers=self.send_headers,
-                             cb_kwargs=dict(uid=uid, screen_name=screen_name, symbol_list=symbol_list))
+                             cb_kwargs=dict(symbol_list=symbol_list))
 
-    def parse_cube_info(self, response, uid, screen_name, symbol_list):
+    def parse_cube_info(self, response, symbol_list):
         json_response = json.loads(response.body_as_unicode())
         for s in symbol_list:
             loader = ItemLoader(item=CubeItem())
@@ -259,8 +311,4 @@ class XueqiuSpider(scrapy.Spider):
             for (field, path) in self.jmes_paths.items():
                 loader.add_value(field, SelectJmes(path)(json_response[s]))
             item = loader.load_item()
-            owner = OwnerItem()
-            owner['id'] = uid
-            owner['screen_name'] = screen_name
-            item['owner'] = owner
             yield item

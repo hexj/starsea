@@ -10,7 +10,7 @@ ps: 因为cube_settings.py已经加到gitignore文件中，所以不用担心账
 
 
 ### Pycharm
-通过terminal执行pipenv shell 和 pipenv sync（同VS Code中terminal的使用)
+通过terminal, cd 到data-feeds/cube目录下，执行pipenv shell 和 pipenv sync（同VS Code中terminal的使用)
 关于Pychar中指定python解释器，可以直接参考[这里](https://blog.csdn.net/qq_20728575/article/details/82949529)
 在pycharm指定解释器为pipenv之后，直接运行main.py即可
 
@@ -21,5 +21,16 @@ url = "https://pypi.doubanio.com/simple"
 verify_ssl = true
 name = "douban"
 ```
+
+### 生成requirements.txt文件
+```
+$ pipenv lock -r
+```
+
+#### 生成dev-packages的requirements.txt文件
+```
+$ pipenv lock -r -d
+```
+
 更多关于pipenv的使用，可以参考[这里](https://stornado.github.io/2019/01/23/pipenv-in-pratical/)
 
