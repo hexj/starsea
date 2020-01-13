@@ -5,4 +5,4 @@ git filter-branch -f --prune-empty --index-filter 'git rm -rf --cached --ignore-
 rm -rf .git/refs/original/
 git reflog expire --expire=now --all
 git gc --prune=now
-git gc --aggressive --prune=now
+git gc  --auto --aggressive --prune=now

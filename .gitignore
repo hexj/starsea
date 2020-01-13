@@ -1,4 +1,8 @@
+.env
+*.ttf
+ta-lib-0.4.0-src.tar.gz
 data/
+facets/
 TDengine/
 *.h5
 .vscode/
@@ -8,6 +12,8 @@ TDengine/
 *.iml
 *.ipr
 *.iws
+libtaos.so
+taos-py3/
 .idea/
 target/
 nbproject/
@@ -78,5 +84,6 @@ Desktop.ini
 Session.vim
 
 .DS_Store
+
 **/__pycache__
 **/*.log
