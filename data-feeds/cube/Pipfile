@@ -1,0 +1,25 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+scrapy = "*"
+beautifulsoup4 = "*"
+# taos = {path = "/home/weibolei/Dev/TDengine/src/connector/python/linux/python3"}
+pandas = "*"
+datetime = "*"
+twisted = "*"
+selenium = "*"
+pillow = "*"
+requests = "*"
+fake-useragent = "*"
+jmespath = "*"
+h5py = "*"
+tables = "*"
+redis = "*"
+
+[requires]
+python_version = "3.7"
