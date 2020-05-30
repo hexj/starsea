@@ -12,13 +12,15 @@ import time
 def exitProgram(conn):
     conn.close()
     sys.exit()
+
 def getconn():
     conn = taos.connect(host="127.0.0.1", user="root", password="taosdata", config="/etc/taos")
     return conn
+
 def df2db(df):
     df.to_sql(name='test', con=con, if_exists='append', index=False)
 
-folder_name = "/Users/hexj/tools/data/sh-sz-lday-2004-20190821"
+folder_name = "/Users/hexj/hexj/db/data/sh-sz-lday-2004-20190821"
 h5file = "dayochlv.h5"
 
 def parse_tdxfile(fname):
@@ -35,8 +37,8 @@ def parse_tdxfile(fname):
             row[2]=row[2]/100
             row[3]=row[3]/100
             row[4]=row[4]/100
-            print(len(row))
-            print("======")
+            # print(len(row))
+            # print("======")
             row.pop() #移除最后无意义字段
             row.insert(0,code)
             dataSet.append(row)  
@@ -48,14 +50,16 @@ def parse_folder(folder_name):
     path = folder_name
     files= os.listdir(path)
     rstdf = []
+    codes = []
     for fname in files: #遍历文件夹
         if not os.path.isdir(fname): #判断是否是文件夹，不是文件夹才打开
             fullname = "{0}/{1}".format(folder_name, fname)
+            codes.append(fname)
             print(fullname)
             df = parse_tdxfile(fullname)
             rstdf.append(df)
     maindf = pd.concat(rstdf)
-    return maindf
+    return maindf, codes
 
 from sqlalchemy import * 
 def writetable(df):
@@ -72,12 +76,10 @@ def concattest():
     # print(maindf['tradeDate'].tail())
     # print(maindf.tail())
     # print(len(maindf))
-    import taos
-    df1
+    print(df1)
 
 def writeall():
-    # folder_name = "/Users/hexj/tools/data/tmp"
-    maindf = parse_folder(folder_name)
+    maindf,codes = parse_folder(folder_name) #TODO codes to hdf
     maindf.to_hdf(h5file, key="dayochlv", mode='a', complib="blosc:snappy", complevel=5)
     print(len(maindf))
     print(maindf.tail())
